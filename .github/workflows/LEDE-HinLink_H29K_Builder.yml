@@ -33,10 +33,10 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: 校验（Checkout）
+    - name: 校验
       uses: actions/checkout@main
 
-    - name: 初始化环境（Initialization environment）
+    - name: 初始化环境
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
@@ -50,7 +50,7 @@ jobs:
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
 
-    - name: Check server configuration
+    - name: 检查服务器配置
       run: |
         echo "警告⚠"
         echo "分配的服务器性能有限，若选择的插件过多，务必注意CPU性能！"
@@ -68,35 +68,35 @@ jobs:
         echo "系统空间        类型   总数  已用  可用  使用率"
         df -Th
 
-    - name: 克隆源代码（Clone source code）
+    - name: 克隆源代码
       working-directory: /workdir
       run: |
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
-    - name: 加载自定义订阅源（Load custom feeds）
+    - name: 加载自定义订阅源
       run: |
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF openwrt/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
 
-    - name: 更新拉取源（Update feeds）
+    - name: 更新拉取源
       run: cd openwrt && ./scripts/feeds update -a
 
-    - name: 安装拉取源（Install feeds）
+    - name: 安装拉取源
       run: cd openwrt && ./scripts/feeds install -a
 
-    - name: 加载自定义配置（Load custom configuration）
+    - name: 加载自定义配置
       run: |
-        [ -e files ] && mkdir -p openwrt/files && mv files/LEDE/HinLink_H29K openwrt/ || echo "跳过：files/LEDE/HinLink_H29K 不存在"
+        [ -d "files/LEDE/HinLink_H29K/target" ] && mv files/LEDE/HinLink_H29K/target openwrt/ || echo "跳过替换"
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" openwrt/.config || echo "跳过：$CONFIG_FILE 不存在"
         chmod +x "$DIY_P2_SH"
         cd openwrt
         "$GITHUB_WORKSPACE/$DIY_P2_SH"
 
-    - name: 下载软件包（Download package）
+    - name: 下载软件包
       id: package
       run: |
         cd openwrt
@@ -105,7 +105,7 @@ jobs:
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
-    - name: 编译固件（Compile the firmware）
+    - name: 编译固件
       id: compile
       run: |
         cd openwrt
@@ -116,18 +116,18 @@ jobs:
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
 
-    - name: 检查空间使用情况（Check space usage）
+    - name: 检查空间使用情况
       if: (!cancelled())
       run: df -hT
 
-    - name: 上传bin目录（Upload bin directory）
+    - name: 上传bin目录
       uses: actions/upload-artifact@main
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
         name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: openwrt/bin
 
-    - name: 整理文件（Organize files）
+    - name: 整理文件
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
@@ -136,14 +136,14 @@ jobs:
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
 
-    - name: 上传固件目录（Upload firmware directory）
+    - name: 上传固件目录
       uses: actions/upload-artifact@main
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
         name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
 
-    - name: 生成发布标签（Generate release tag）
+    - name: 生成发布标签
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
@@ -152,7 +152,7 @@ jobs:
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
 
-    - name: 上传固件以发布（Upload firmware to release）
+    - name: 上传固件以发布
       uses: softprops/action-gh-release@master
       if: steps.tag.outputs.status == 'success' && !cancelled()
       env:
@@ -162,13 +162,13 @@ jobs:
         body_path: release.txt
         files: ${{ env.FIRMWARE }}/*
 
-    - name: 删除工作流运行（Delete workflow runs）
+    - name: 删除工作流运行
       uses: Mattraks/delete-workflow-runs@main
       with:
         retain_days: 0
         keep_minimum_runs: 2
 
-    - name: 删除旧版本（Remove old Releases）
+    - name: 删除旧版本
       uses: dev-drprasad/delete-older-releases@master
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
