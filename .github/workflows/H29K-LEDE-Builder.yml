@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: H29K-LEDE-Builder (${{ github.run_id }} - ${{ format('{0:dd/MM HH:mm}', github.event.created_at) }})
+name: H29K-LEDE-Builder
 
 on:
   repository_dispatch:
