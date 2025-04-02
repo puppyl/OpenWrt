@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: H29K-LEDE-Builder
+name: LEDE-H29K-Builder
 
 on:
   repository_dispatch:
