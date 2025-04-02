@@ -90,11 +90,11 @@ jobs:
 
     - name: 加载自定义配置（Load custom configuration）
       run: |
-        [ -e files ] && mv files/LEDE/HinLink-H29K openwrt/files
-        [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
-        chmod +x $DIY_P2_SH
+        [ -e files ] && mkdir -p openwrt/files && mv files/iStoreOS/X86_64 openwrt/files || echo "跳过：files/iStoreOS/X86_64 不存在"
+        [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" openwrt/.config || echo "跳过：$CONFIG_FILE 不存在"
+        chmod +x "$DIY_P2_SH"
         cd openwrt
-        $GITHUB_WORKSPACE/$DIY_P2_SH
+        "$GITHUB_WORKSPACE/$DIY_P2_SH"
 
     - name: 下载软件包（Download package）
       id: package

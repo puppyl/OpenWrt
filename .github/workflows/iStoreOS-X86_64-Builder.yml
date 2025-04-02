@@ -90,14 +90,12 @@ jobs:
 
     - name: 加载自定义配置（Load custom configuration）
       run: |
-        # 只增加 mkdir -p 防止目标目录不存在，其余逻辑不变
         [ -e files ] && mkdir -p openwrt/files && mv files/iStoreOS/X86_64 openwrt/files || echo "跳过：files/iStoreOS/X86_64 不存在"
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" openwrt/.config || echo "跳过：$CONFIG_FILE 不存在"
         chmod +x "$DIY_P2_SH"
         cd openwrt
         "$GITHUB_WORKSPACE/$DIY_P2_SH"
     
-
     - name: 下载软件包（Download package）
       id: package
       run: |
