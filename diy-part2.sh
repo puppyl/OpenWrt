@@ -17,4 +17,4 @@
 #sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
 # 修改默认名称
-#sed -i 's/LEDE/H29K/g' package/base-files/files/bin/config_generate
+sed -i 's/LEDE/H29K/g' package/base-files/files/bin/config_generate
