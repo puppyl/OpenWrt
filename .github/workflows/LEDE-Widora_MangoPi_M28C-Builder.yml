@@ -90,7 +90,7 @@ jobs:
 
     - name: 加载自定义配置（Load custom configuration）
       run: |
-        [ -e files ] && mkdir -p openwrt/files && mv files/LEDE/Widora_MangoPi_M28C openwrt/files || echo "跳过：files/iStoreOS/X86_64 不存在"
+        [ -e files ] && mkdir -p openwrt/files && mv files/LEDE/Widora_MangoPi_M28C openwrt/files || echo "跳过：files/Widora_MangoPi_M28C 不存在"
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" openwrt/.config || echo "跳过：$CONFIG_FILE 不存在"
         chmod +x "$DIY_P2_SH"
         cd openwrt
