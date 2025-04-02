@@ -23,7 +23,8 @@ sed -i 's/LEDE/H29K/g' package/base-files/files/bin/config_generate
 sed -i 's/set wireless.default_radio${devidx}.ssid=LEDE/set wireless.default_radio${devidx}.ssid=H29K/g' \
     package/kernel/mac80211/files/lib/wifi/mac80211.sh
 
-# 修改加密方式（none → psk2）并添加密码（1234567890）
-sed -i 's/set wireless.default_radio${devidx}.encryption=none/set wireless.default_radio${devidx}.encryption=psk2\\n\\t\\t\\t set wireless.default_radio${devidx}.key=1234567890/g' \
-    package/kernel/mac80211/files/lib/wifi/mac80211.sh
+# 2. 修改加密方式 (none → psk2)
+sed -i 's/set wireless.default_radio${devidx}.encryption=none/set wireless.default_radio${devidx}.encryption=psk2/' package/kernel/mac80211/files/lib/wifi/mac80211.sh
 
+# 3. 在加密行后新增密码行 (确保格式对齐)
+sed -i '/set wireless.default_radio${devidx}.encryption=psk2/a \\t\tset wireless.default_radio${devidx}.key=1234567890' package/kernel/mac80211/files/lib/wifi/mac80211.sh
