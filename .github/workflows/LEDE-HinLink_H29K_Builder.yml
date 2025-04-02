@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: LEDE-HinLink-H29K-Builder
+name: LEDE-HinLink_H29K-Builder
 
 on:
   repository_dispatch:
@@ -19,10 +19,10 @@ on:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  FEEDS_CONF: feeds_config/LEDE/HinLink-H29K/feeds.conf.default
-  CONFIG_FILE: config/LEDE/HinLink-H29K/.config
-  DIY_P1_SH: DIY_Script/LEDE/HinLink-H29K/diy-part1.sh
-  DIY_P2_SH: DIY_Script/LEDE/HinLink-H29K/diy-part2.sh
+  FEEDS_CONF: feeds_config/LEDE/HinLink_H29K/feeds.conf.default
+  CONFIG_FILE: config/LEDE/HinLink_H29K/.config
+  DIY_P1_SH: DIY_Script/LEDE/HinLink_H29K/diy-part1.sh
+  DIY_P2_SH: DIY_Script/LEDE/HinLink_H29K/diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
@@ -90,7 +90,7 @@ jobs:
 
     - name: 加载自定义配置（Load custom configuration）
       run: |
-        [ -e files ] && mkdir -p openwrt/files && mv files/iStoreOS/X86_64 openwrt/files || echo "跳过：files/iStoreOS/X86_64 不存在"
+        [ -e files ] && mkdir -p openwrt/files && mv files/LEDE/HinLink_H29K openwrt/files || echo "跳过：files/iStoreOS/X86_64 不存在"
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" openwrt/.config || echo "跳过：$CONFIG_FILE 不存在"
         chmod +x "$DIY_P2_SH"
         cd openwrt
@@ -147,7 +147,7 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=LEDE-HinLink-H29K-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
+        echo "release_tag=LEDE-HinLink_H29K-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
         touch release.txt
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
