@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-# Modify default IP
+# 修改默认IP
 #sed -i 's/192.168.1.1/192.168.50.5/g' package/base-files/files/bin/config_generate
 
 # Modify default theme
