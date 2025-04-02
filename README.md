@@ -1,4 +1,3 @@
-**英文** | 
 # Actions-OpenWrt
 [](https://github.com/P3TERX/Actions-OpenWrt/blob/master/LICENSE)
 ![GitHub 星标](https://img.shields.io/github/stars/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=星标&logo=github)
