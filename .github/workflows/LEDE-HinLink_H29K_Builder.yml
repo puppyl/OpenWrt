@@ -33,7 +33,7 @@ on: push
 
 jobs:
   test:
-    runs-on: ubuntu-latest  # 当前默认是 Ubuntu 24.04
+    runs-on: ubuntu-latest
     steps:
       - name: 安装并设置中文语言环境
         run: |
