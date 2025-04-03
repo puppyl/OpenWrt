@@ -74,5 +74,9 @@ else
    echo -e "\e[41m当前写入的编译时间:\e[0m \e[33m$(grep 'OPENWRT_RELEASE' package/base-files/files/usr/lib/os-release)\e[0m"
 fi
 
+# 固件更新地址
+sed -i '/CPU usage/a\                <tr><td width="33%"><%:Compile update%></td><td><a target="_blank" href="https://github.com/aaaol/OpenWrt/releases">👆查看</a></td></tr>'  package/lean/autocore/files/x86/index.htm
+cat >>feeds/luci/modules/luci-base/po/zh-cn/base.po<<- EOF
+
 echo "========================="
 echo " DIY2 配置完成……"
