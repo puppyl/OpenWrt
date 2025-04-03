@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: LEDE-HinLink_H29K-Builder1
+name: LEDE-HinLink_H29K-Builder
 
 on:
   repository_dispatch:
