@@ -13,7 +13,7 @@
 name: LEDE-HinLink_H29K-Builder
 
 on:
-  repository_dispatch:
+  #repository_dispatch:
   workflow_dispatch:
 
 env:
