@@ -90,11 +90,14 @@ jobs:
 
     - name: 加载自定义配置
       run: |
+        # 0. 进入工作目录（关键修复点）
+        cd "$GITHUB_WORKSPACE" || exit 1
+        
         # 1. 确保目录存在
         mkdir -p "openwrt"
         echo "正在同步 target 目录..."
         
-        # 2. 强制同步文件（使用 rsync 更可靠）
+        # 2. 强制同步文件
         rsync -a --delete "files/LEDE/HinLink_H29K/target/" "openwrt/"
         
         # 3. 处理 .config 文件
@@ -105,16 +108,17 @@ jobs:
           echo "跳过：未找到 $CONFIG_FILE"
         fi
         
-        # 4. 检查 DIY 脚本是否存在
-        if [ ! -f "$DIY_P2_SH" ]; then
-          echo "错误：$DIY_P2_SH 不存在！"
+        # 4. 检查 DIY 脚本是否存在（使用绝对路径）
+        DIY_P2_SH_FULL="$GITHUB_WORKSPACE/$DIY_P2_SH"
+        if [ ! -f "$DIY_P2_SH_FULL" ]; then
+          echo "错误：$DIY_P2_SH_FULL 不存在！"
           exit 1
         fi
         
-        # 5. 赋予执行权限并运行
-        chmod +x "$DIY_P2_SH"
+        # 5. 赋予执行权限并运行（关键修复点）
+        chmod +x "$DIY_P2_SH_FULL"
         echo "正在执行 DIY 脚本..."
-        cd openwrt && source "../$DIY_P2_SH"
+        cd openwrt && source "$DIY_P2_SH_FULL"
       shell: bash
     
 
