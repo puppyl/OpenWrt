@@ -90,6 +90,7 @@ jobs:
 
     - name: 加载自定义配置
       run: |
+        [ -d "files/Modem" ] && mv -f files/LEDE/HinLink_H29K/target lede/package/feeds/modem
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config
         chmod +x "$DIY_P2_SH"
         cd lede

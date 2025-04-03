@@ -75,8 +75,12 @@ else
 fi
 
 # 固件更新地址
-sed -i '/CPU usage/a\                <tr><td width="33%"><%:Compile update%></td><td><a target="_blank" href="https://github.com/aaaol/OpenWrt/releases">👆查看</a></td></tr>'  package/lean/autocore/files/x86/index.htm
-cat >>feeds/luci/modules/luci-base/po/zh-cn/base.po<<- EOF
+sed -i '/CPU usage/a\                <tr><td width="33\%"><\%:Compile update\%></td><td><a target="_blank" href="https://github.com/aaaol/OpenWrt/releases">👆查看</a></td></tr>' package/lean/autocore/files/x86/index.htm
+
+cat >> feeds/luci/modules/luci-base/po/zh-cn/base.po <<EOF
+msgid "New Feature"
+msgstr "新功能"
+EOF
 
 echo "========================="
 echo " DIY2 配置完成……"
