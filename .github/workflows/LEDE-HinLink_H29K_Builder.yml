@@ -90,7 +90,8 @@ jobs:
 
     - name: 加载自定义配置
       run: |
-        [ -d "files/LEDE/HinLink_H29K/target" ] && rsync -a --delete "files/LEDE/HinLink_H29K/target/" "openwrt/"
+        rm -rf "openwrt/target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3528-opc-h29k.dts"
+        mv -f "files/LEDE/HinLink_H29K/target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/rk3528-opc-h29k.dts" "openwrt/target/linux/rockchip/files/arch/arm64/boot/dts/rockchip/"
         [ -d "files/Modem" ] && mv -f files/LEDE/HinLink_H29K/target openwrt/package/feeds/modem
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" openwrt/.config || echo "跳过：$CONFIG_FILE 不存在"
         chmod +x "$DIY_P2_SH"
