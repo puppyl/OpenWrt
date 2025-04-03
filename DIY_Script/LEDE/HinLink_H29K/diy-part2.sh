@@ -18,14 +18,10 @@
 
 # 修改默认名称
 sed -i 's/LEDE/H29K/g' package/base-files/files/bin/config_generate
-sed -i 's/OpenWrt/H29K/g' package/base-files/files/bin/config_generate
-sed -i 's/openwrt/H29K/g' package/base-files/files/bin/config_generate
-
-
+sed -i 's/set system.@system[-1].hostname=.*/set system.@system[-1].hostname='"'"'H29K'"'"'/g' package/base-files/files/bin/config_generate
 
 # 修改 WiFi 名称（SSID）从 LEDE → H29K
-sed -i 's/set wireless.default_radio${devidx}.ssid=LEDE/set wireless.default_radio${devidx}.ssid=H29K/g' \
-    package/kernel/mac80211/files/lib/wifi/mac80211.sh
+sed -i 's/set wireless.default_radio${devidx}.ssid=LEDE/set wireless.default_radio${devidx}.ssid=H29K/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
 
 # 修改加密方式 (none → psk2)
 sed -i 's/set wireless.default_radio${devidx}.encryption=none/set wireless.default_radio${devidx}.encryption=psk2/' package/kernel/mac80211/files/lib/wifi/mac80211.sh
