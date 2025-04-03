@@ -28,9 +28,29 @@ env:
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
 
+name: "测试中文和上海时区"
+on: push
+
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ubuntu-latest  # 当前默认是 Ubuntu 24.04
+    steps:
+      - name: 安装并设置中文语言环境
+        run: |
+          sudo apt update
+          sudo apt install -y locales
+          sudo locale-gen zh_CN.UTF-8
+          echo "LANG=zh_CN.UTF-8" | sudo tee /etc/default/locale
+
+      - name: 设置上海时区
+        run: |
+          sudo ln -sf /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
+          echo "TZ=Asia/Shanghai" | sudo tee -a /etc/environment
+
+      - name: 当前时间
+        run: |
+          export LANG=zh_CN.UTF-8
+          date
 
     steps:
     - name: 校验
