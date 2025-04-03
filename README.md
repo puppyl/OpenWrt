@@ -3,16 +3,9 @@
 ![GitHub 星标](https://img.shields.io/github/stars/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=星标&logo=github)
 ![GitHub 复刻](https://img.shields.io/github/forks/P3TERX/Actions-OpenWrt.svg?style=flat-square&label=复刻&logo=github)
 一个使用 GitHub Actions 编译 OpenWrt 的模板
-## 使用方法
-1. 点击 [使用此模板](https://github.com/P3TERX/Actions-OpenWrt/generate) 按钮创建一个新的仓库。
-2. 使用 [Lean 的 OpenWrt](https://github.com/coolsnowwolf/lede) 源码生成 `.config` 文件（可通过工作流文件中的环境变量修改）。
-3. 将 `.config` 文件推送到 GitHub 仓库。
-4. 在 Actions 页面选择 `Build OpenWrt`。
-5. 点击 `Run workflow` 按钮开始编译。
-6. 编译完成后，点击 Actions 页面右上角的 `Artifacts` 按钮下载固件。
-## 提示
-- 生成 `.config` 文件和编译 OpenWrt 固件可能需要较长时间。因此，建议在自行编译前，先通过 [在 GitHub 搜索 `Actions-openwrt`](https://github.com/search?q=Actions-openwrt) 查看是否已有符合需求的固件。
-- 在仓库介绍中添加固件的元信息（如架构和已安装的软件包），以节省他人的时间。
+
+## 固件说明
+
 ## 致谢
 - [Microsoft Azure](https://azure.microsoft.com)
 - [GitHub Actions](https://github.com/features/actions)
