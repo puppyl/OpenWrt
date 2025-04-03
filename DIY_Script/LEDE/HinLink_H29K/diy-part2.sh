@@ -82,5 +82,9 @@ msgid "New Feature"
 msgstr "新功能"
 EOF
 
+# 修改固件名称为 "H29K-日期-型号"
+sed -i 's/^IMG_PREFIX :=.*/IMG_PREFIX := $(shell date +%Y%m%d)-Lede-HinLink_H29K/' include/image.mk
+sed -i "s/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION='LEDE - Custom Build by aaaol'/g" package/base-files/files/etc/openwrt_release
+
 echo "========================="
 echo " DIY2 配置完成……"
