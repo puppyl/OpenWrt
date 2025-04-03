@@ -5,6 +5,7 @@
 一个使用 GitHub Actions 编译 OpenWrt 的模板
 
 ## 固件说明
+[![LEDE-HinLink_H29K-Builder](https://github.com/aaaol/OpenWrt/actions/workflows/LEDE-HinLink_H29K-Builder.yml/badge.svg)](https://github.com/aaaol/OpenWrt/actions/workflows/LEDE-HinLink_H29K-Builder.yml)
 
 ## 致谢
 - [Microsoft Azure](https://azure.microsoft.com)
