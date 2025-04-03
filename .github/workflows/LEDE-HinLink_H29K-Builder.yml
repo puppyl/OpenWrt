@@ -119,28 +119,34 @@ jobs:
       if: (!cancelled())
       run: df -hT
 
-    - name: 上传bin目录
-      uses: actions/upload-artifact@main
+      - name: 上传bin目录（仅 .gz/.img/.bin）
+      uses: actions/upload-artifact@v4
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
         name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: lede/bin
+        path: |
+          lede/bin/targets/**/*.gz
+          lede/bin/targets/**/*.img
+          lede/bin/targets/**/*.bin
 
-    - name: 整理文件
+    - name: 整理文件（仅保留 .gz/.img/.bin）
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         cd lede/bin/targets/*/*
-        rm -rf packages
+        rm -rf packages  # 删除无用文件
+        shopt -s extglob  # 启用扩展 glob 模式
+        rm -fv !(*.gz|*.img|*.bin)  # 删除非固件文件
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
 
-    - name: 上传固件目录
-      uses: actions/upload-artifact@main
+    - name: 上传固件目录（仅 .gz/.img/.bin）
+      uses: actions/upload-artifact@v4
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
         name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
-        path: ${{ env.FIRMWARE }}
+        path: ${{ env.FIRMWARE }}/*.gz,${{ env.FIRMWARE }}/*.img,${{ env.FIRMWARE }}/*.bin
+
 
     - name: 生成发布标签
       id: tag
