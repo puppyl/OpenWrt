@@ -3,7 +3,7 @@ name: "LEDE 更新检查器"
 env:
   MONITOR_REPO_URL: https://github.com/coolsnowwolf/lede
   MONITOR_BRANCH: master
-  TARGET_WORKFLOWS: "LEDE-MangoPi_M28C-Builder.yml"  # 修改为你实际的工作流文件名
+  TARGET_WORKFLOWS: "LEDE-MangoPi_M28C-Builder"  # 修改为你实际的工作流文件名
 
 on:
   workflow_dispatch:
