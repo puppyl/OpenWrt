@@ -66,7 +66,7 @@ jobs:
           echo "目标工作流: ${{ env.TARGET_WORKFLOWS }}"
           echo "==========================================="
 
-          if [ "${{ github.event_name }}" == "schedule" ]; then
+          if [ "${{ github.event_name }}" == "schedule" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             IFS=',' read -ra workflow_array <<< "${{ env.TARGET_WORKFLOWS }}"
             for workflow in "${workflow_array[@]}"; do
               workflow=$(echo $workflow | xargs)
@@ -79,7 +79,7 @@ jobs:
               sleep 1  # 避免触发频率过高
             done
           else
-            echo "当前事件不是定时触发，不执行工作流调度"
+            echo "当前事件不是定时触发或手动触发，不执行工作流调度"
           fi
 
       - name: "清理日志"
