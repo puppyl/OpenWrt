@@ -78,7 +78,7 @@ jobs:
     - name: 加载自定义订阅源
       run: |
         [ -e files ] && cp -rf files/LEDE/HinLink_H29K/* lede/
-        cp -rf files/LEDE/HinLink_H29K/Modem/quectel_cm_5G lede/package/feeds/modem
+        [ -e files/LEDE/Modem ] && cp -rf files/LEDE/Modem/quectel_cm_5G lede/package/feeds/modem
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF lede/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd lede
