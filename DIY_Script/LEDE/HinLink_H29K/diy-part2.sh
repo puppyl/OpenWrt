@@ -16,7 +16,7 @@
 # Modify default theme
 #sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 # 修改默认主机名
-sed -i "s/hostname='.*'/hostname='H29K'/g" package/base-files/files/bin/config_generate
+sed -i "s/set system.@system\[-1\].hostname='LEDE'/set system.@system\[-1\].hostname='H29K'/" package/base-files/files/bin/config_generate
 
 # 修改 WiFi 名称（SSID）从 LEDE → H29K
 sed -i 's/set wireless.default_radio${devidx}.ssid=LEDE/set wireless.default_radio${devidx}.ssid=H29K/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
