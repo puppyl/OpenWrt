@@ -16,8 +16,7 @@
 # Modify default theme
 #sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 # 修改默认主机名
-config_generate="./package/base-files/files/bin/config_generate"
-sed -i "s/hostname='.*'/hostname='H29K'/g" $config_generate
+sed -i "s/hostname='.*'/hostname='H29K'/g" package/base-files/files/bin/config_generate
 
 # 修改 WiFi 名称（SSID）从 LEDE → H29K
 sed -i 's/set wireless.default_radio${devidx}.ssid=LEDE/set wireless.default_radio${devidx}.ssid=H29K/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
@@ -69,12 +68,12 @@ if [ "${REPO_BRANCH#*-}" = "23.05" ]; then
    echo -e "\e[41m当前写入的编译时间:\e[0m \e[33m$(grep 'DISTRIB_DESCRIPTION' package/base-files/files/etc/openwrt_release)\e[0m"
 else
    sed -i "s/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION=\"LEDE By @aaaol\"/g"  package/base-files/files/etc/openwrt_release
-   sed -i "s/OPENWRT_RELEASE=.*/OPENWRT_RELEASE=\"OpenWrt R$(TZ=UTC-8 date +'%y.%-m.%-d') (By @aaaol build $(TZ=UTC-8 date '+%Y-%m-%d %H:%M'))\"/g"  package/base-files/files/usr/lib/os-release
+   sed -i "s/OPENWRT_RELEASE=.*/OPENWRT_RELEASE=\"LEDE R$(TZ=UTC-8 date +'%y.%-m.%-d') (By @aaaol build $(TZ=UTC-8 date '+%Y-%m-%d %H:%M'))\"/g"  package/base-files/files/usr/lib/os-release
    echo -e "\e[41m当前写入的编译时间:\e[0m \e[33m$(grep 'OPENWRT_RELEASE' package/base-files/files/usr/lib/os-release)\e[0m"
 fi
 
 # 固件更新地址
-sed -i '/CPU usage/a\                <tr><td width="33\%"><\%:Compile update\%></td><td><a target="_blank" href="https://github.com/aaaol/OpenWrt/releases">👆查看</a></td></tr>' package/lean/autocore/files/arm/index.htm
+sed -i '/CPU usage/a\                <tr><td width="33\%"><\%:Compile update\%></td><td><a target="_blank" href="https://github.com/aaaol/OpenWrt/releases">👇查看</a></td></tr>' package/lean/autocore/files/arm/index.htm
 
 echo "========================="
 echo " DIY2 配置完成……"
