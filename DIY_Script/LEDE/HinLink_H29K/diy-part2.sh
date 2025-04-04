@@ -15,10 +15,9 @@
 
 # Modify default theme
 #sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
-
-# 修改默认名称
-sed -i 's/LEDE/H29K/g' package/base-files/files/bin/config_generate
-sed -i 's/OpenWrt/H29K/g' package/base-files/files/bin/config_generate
+# 修改默认主机名
+config_generate="./package/base-files/files/bin/config_generate"
+sed -i "s/hostname='.*'/hostname='H29K'/g" $config_generate
 
 # 修改 WiFi 名称（SSID）从 LEDE → H29K
 sed -i 's/set wireless.default_radio${devidx}.ssid=LEDE/set wireless.default_radio${devidx}.ssid=H29K/g' package/kernel/mac80211/files/lib/wifi/mac80211.sh
