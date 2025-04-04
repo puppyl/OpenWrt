@@ -1,9 +1,9 @@
 name: "🛰️ 智能源码监控系统"
 
 env:
-  监控仓库地址: https://github.com/coolsnowwolf/lede
-  监控分支: master
-  目标工作流列表: "LEDE-MangoPi_M28C-Builder.yml"  # 改为实际的工作流文件名
+  MONITOR_REPO_URL: https://github.com/coolsnowwolf/lede
+  MONITOR_BRANCH: master
+  TARGET_WORKFLOWS: "LEDE-MangoPi_M28C-Builder.yml"  # 改为实际的工作流文件名
 
 on:
   workflow_dispatch:
@@ -21,8 +21,8 @@ jobs:
         run: |
           echo "╔══════════════════════════════════════════════╗"
           echo "║                                              ║"
-          echo "║        仓库监控系统 初始化中...              ║"
-          echo "║       $(date +'%Y-%m-%d %H:%M:%S')              ║"
+          echo "║          仓库监控系统 初始化中...            ║"
+          echo "║         $(date +'%Y-%m-%d %H:%M:%S')            ║"
           echo "║                                              ║"
           echo "╚══════════════════════════════════════════════╝"
           echo "▷ 正在加载核心模块..."
@@ -35,9 +35,9 @@ jobs:
         id: scan
         run: |
           echo "┌──────────────────────────────────────────────┐"
-          echo "│ 正在分析目标仓库：${{ env.监控仓库地址 }}    │"
+          echo "│ 正在分析目标仓库：${{ env.MONITOR_REPO_URL }}    │"
           echo "└──────────────────────────────────────────────┘"
-          git clone --depth 1 ${{ env.监控仓库地址 }} -b ${{ env.监控分支 }} .
+          git clone --depth 1 ${{ env.MONITOR_REPO_URL }} -b ${{ env.MONITOR_BRANCH }} .
           当前哈希=$(git rev-parse HEAD)
           echo "├──────────────────────────────────────────────┤"
           echo "│ 最新提交哈希: ${当前哈希:0:7}...${当前哈希: -7} │"
@@ -65,10 +65,10 @@ jobs:
         run: |
           echo "╔══════════════════════════════════════════════╗"
           echo "║  调度中心接到指令，正在分发任务...         ║"
-          echo "║  目标工作流: ${{ env.目标工作流列表 }}     ║"
+          echo "║  目标工作流: ${{ env.TARGET_WORKFLOWS }}     ║"
           echo "╚══════════════════════════════════════════════╝"
 
-          IFS=',' read -ra 工作流数组 <<< "${{ env.目标工作流列表 }}"
+          IFS=',' read -ra 工作流数组 <<< "${{ env.TARGET_WORKFLOWS }}"
           for 工作流 in "${工作流数组[@]}"; do
             工作流=$(echo $工作流 | xargs)
             echo "⚡ 正在触发工作流: $工作流"
