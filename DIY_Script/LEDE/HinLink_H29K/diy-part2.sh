@@ -66,25 +66,16 @@ sed -i '$a net.netfilter.nf_conntrack_max=65535' package/base-files/files/etc/sy
 
 # 显示增加编译时间
 if [ "${REPO_BRANCH#*-}" = "23.05" ]; then
-   sed -i "s/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION=\"OpenWrt R$(TZ=UTC-8 date +'%y.%-m.%-d') (By @Jejz build $(TZ=UTC-8 date '+%Y-%m-%d %H:%M'))\"/g"  package/base-files/files/etc/openwrt_release
+   sed -i "s/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION=\"LEDE R$(TZ=UTC-8 date +'%y.%-m.%-d') (By @aaaol build $(TZ=UTC-8 date '+%Y-%m-%d %H:%M'))\"/g"  package/base-files/files/etc/openwrt_release
    echo -e "\e[41m当前写入的编译时间:\e[0m \e[33m$(grep 'DISTRIB_DESCRIPTION' package/base-files/files/etc/openwrt_release)\e[0m"
 else
-   sed -i "s/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION=\"OpenWrt By @Jejz\"/g"  package/base-files/files/etc/openwrt_release
+   sed -i "s/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION=\"LEDE By @aaaol\"/g"  package/base-files/files/etc/openwrt_release
    sed -i "s/OPENWRT_RELEASE=.*/OPENWRT_RELEASE=\"OpenWrt R$(TZ=UTC-8 date +'%y.%-m.%-d') (By @aaaol build $(TZ=UTC-8 date '+%Y-%m-%d %H:%M'))\"/g"  package/base-files/files/usr/lib/os-release
    echo -e "\e[41m当前写入的编译时间:\e[0m \e[33m$(grep 'OPENWRT_RELEASE' package/base-files/files/usr/lib/os-release)\e[0m"
 fi
 
 # 固件更新地址
-sed -i '/CPU usage/a\                <tr><td width="33\%"><\%:Compile update\%></td><td><a target="_blank" href="https://github.com/aaaol/OpenWrt/releases">👆查看</a></td></tr>' package/lean/autocore/files/x86/index.htm
-
-cat >> feeds/luci/modules/luci-base/po/zh-cn/base.po <<EOF
-msgid "New Feature"
-msgstr "新功能"
-EOF
-
-# 修改固件名称为 "H29K-日期-型号"
-sed -i 's/^IMG_PREFIX :=.*/IMG_PREFIX := $(shell date +%Y%m%d)-Lede-HinLink_H29K/' include/image.mk
-sed -i "s/DISTRIB_DESCRIPTION=.*/DISTRIB_DESCRIPTION='LEDE - Custom Build by aaaol'/g" package/base-files/files/etc/openwrt_release
+sed -i '/CPU usage/a\                <tr><td width="33\%"><\%:Compile update\%></td><td><a target="_blank" href="https://github.com/aaaol/OpenWrt/releases">👆查看</a></td></tr>' package/lean/autocore/files/arm/index.htm
 
 echo "========================="
 echo " DIY2 配置完成……"
