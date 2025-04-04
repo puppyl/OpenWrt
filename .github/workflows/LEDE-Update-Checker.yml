@@ -1,86 +1,84 @@
-name: "🛰️ 智能源码监控系统"
+name: "LEDE Update Checker"
 
 env:
   MONITOR_REPO_URL: https://github.com/coolsnowwolf/lede
   MONITOR_BRANCH: master
-  TARGET_WORKFLOWS: "LEDE-MangoPi_M28C-Builder.yml"  # 改为实际的工作流文件名
+  TARGET_WORKFLOWS: "LEDE-MangoPi_M28C-Builder.yml"  # Change to your actual workflow file names
 
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 20 * * *'  # UTC时间20:00(北京时间04:00)
+    - cron: '0 20 * * *'  # 20:00 UTC (04:00 Beijing time)
 
 jobs:
-  仓库更新监控:
-    name: "🛡️ [主控单元] 仓库更新监控"
+  monitor_repo:
+    name: "Main Unit: Monitor Repo"
     runs-on: ubuntu-latest
 
     steps:
-      # ----------------------- 系统初始化伪装 -----------------------
-      - name: "🚀 启动系统"
+      # ----------------------- System Initialization -----------------------
+      - name: "Launch System"
         run: |
-          echo "╔══════════════════════════════════════════════╗"
-          echo "║                                              ║"
-          echo "║          仓库监控系统 初始化中...            ║"
-          echo "║         $(date +'%Y-%m-%d %H:%M:%S')            ║"
-          echo "║                                              ║"
-          echo "╚══════════════════════════════════════════════╝"
-          echo "▷ 正在加载核心模块..."
+          echo "==========================================="
+          echo "          LEDE Update Checker Initializing..."
+          echo "          $(date +'%Y-%m-%d %H:%M:%S')"
+          echo "==========================================="
+          echo ">> Loading core modules..."
           sleep 0.5
-          echo "✔ 虚拟环境已就绪"
+          echo ">> Virtual environment ready"
           sleep 0.3
 
-      # ----------------------- 实际工作流程 -----------------------
-      - name: "🔍 指纹扫描"
+      # ----------------------- Actual Workflow -----------------------
+      - name: "Fingerprint Scan"
         id: scan
         run: |
-          echo "┌──────────────────────────────────────────────┐"
-          echo "│ 正在分析目标仓库：${{ env.MONITOR_REPO_URL }}    │"
-          echo "└──────────────────────────────────────────────┘"
+          echo "==========================================="
+          echo "Analyzing target repository: ${{ env.MONITOR_REPO_URL }}"
+          echo "==========================================="
           git clone --depth 1 ${{ env.MONITOR_REPO_URL }} -b ${{ env.MONITOR_BRANCH }} .
-          当前哈希=$(git rev-parse HEAD)
-          echo "├──────────────────────────────────────────────┤"
-          echo "│ 最新提交哈希: ${当前哈希:0:7}...${当前哈希: -7} │"
-          echo "└──────────────────────────────────────────────┘"
-          echo "commitHash=$当前哈希" >> $GITHUB_OUTPUT
+          current_hash=$(git rev-parse HEAD)
+          echo "==========================================="
+          echo "Latest commit hash: ${current_hash:0:7}...${current_hash: -7}"
+          echo "==========================================="
+          echo "commitHash=$current_hash" >> $GITHUB_OUTPUT
 
-      - name: "📊 指纹比对"
+      - name: "Fingerprint Comparison"
         id: cache_check
         uses: actions/cache@v3
         with:
           path: .commitHash
           key: commitHash_${{ steps.scan.outputs.commitHash }}
 
-      - name: "논 保存新指纹数据"
+      - name: "Save New Fingerprint Data"
         if: steps.cache_check.outputs.cache-hit != 'true'
         run: |
-          echo "┌──────────────────────────────────────────────┐"
-          echo "│ 刷新指纹数据中...                             │"
-          echo "└──────────────────────────────────────────────┘"
+          echo "==========================================="
+          echo "Updating fingerprint data..."
+          echo "==========================================="
           echo "${{ steps.scan.outputs.commitHash }}" | tee .commitHash
-          echo "✅ 指纹数据已更新"
+          echo "Fingerprint data updated successfully"
 
-      - name: "🔔 触发协同工作流"
+      - name: "Trigger Associated Workflows"
         if: always()
         run: |
-          echo "╔══════════════════════════════════════════════╗"
-          echo "║  调度中心接到指令，正在分发任务...         ║"
-          echo "║  目标工作流: ${{ env.TARGET_WORKFLOWS }}     ║"
-          echo "╚══════════════════════════════════════════════╝"
+          echo "==========================================="
+          echo "Dispatch center received instruction, dispatching tasks..."
+          echo "Target workflows: ${{ env.TARGET_WORKFLOWS }}"
+          echo "==========================================="
 
-          IFS=',' read -ra 工作流数组 <<< "${{ env.TARGET_WORKFLOWS }}"
-          for 工作流 in "${工作流数组[@]}"; do
-            工作流=$(echo $工作流 | xargs)
-            echo "⚡ 正在触发工作流: $工作流"
+          IFS=',' read -ra workflow_array <<< "${{ env.TARGET_WORKFLOWS }}"
+          for workflow in "${workflow_array[@]}"; do
+            workflow=$(echo $workflow | xargs)
+            echo "Triggering workflow: $workflow"
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$工作流/dispatches" \
+              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$workflow/dispatches" \
               -d '{"ref":"master","inputs":{"force_build":"${{ github.event_name == \"schedule\" }}"}}'
-            sleep 1  # 避免触发频率过高
+            sleep 1  # Avoid high trigger frequency
           done
 
-      - name: "🧹 清理日志"
+      - name: "Clean Up Logs"
         if: always()
         uses: Mattraks/delete-workflow-runs@v2
         with:
