@@ -3,7 +3,7 @@ name: "LEDE Update Checker"
 env:
   MONITOR_REPO_URL: https://github.com/coolsnowwolf/lede
   MONITOR_BRANCH: master
-  TARGET_WORKFLOWS: "LEDE-MangoPi_M28C-Builder.yml"  # Change to your actual workflow file names
+  TARGET_WORKFLOWS: "LEDE-MangoPi_M28C-Builder.yml"  # Change to your actual workflow file name
 
 on:
   workflow_dispatch:
@@ -70,11 +70,12 @@ jobs:
           for workflow in "${workflow_array[@]}"; do
             workflow=$(echo $workflow | xargs)
             echo "Triggering workflow: $workflow"
+            event_name=$(echo ${{ github.event_name }} | xargs)
             curl -X POST \
               -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
               -H "Accept: application/vnd.github.v3+json" \
               "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$workflow/dispatches" \
-              -d '{"ref":"master","inputs":{"force_build":"${{ github.event_name == \'schedule\' }}"}}'
+              -d '{"ref":"master","inputs":{"force_build":"'${{ event_name == 'schedule' }}"'}}'
             sleep 1  # Avoid high trigger frequency
           done
 
