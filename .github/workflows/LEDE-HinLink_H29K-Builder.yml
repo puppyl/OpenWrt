@@ -77,6 +77,7 @@ jobs:
 
     - name: 加载自定义订阅源
       run: |
+        [ -e files ] && cp -rf files/LEDE/HinLink_H29K/* openwrt/
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF lede/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd lede
@@ -131,7 +132,8 @@ jobs:
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         cd lede/bin/targets/*/*
-        rm -rf packages
+        rm -rf packages *.buildinfo *.json *.manifest
+        rm -rf config.buildinfo
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
 
