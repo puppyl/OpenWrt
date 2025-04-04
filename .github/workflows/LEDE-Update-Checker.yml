@@ -1,90 +1,47 @@
-name: "LEDE 更新检查器"
+name: 自动更新  # 工作流名称：自动更新
 
-env:
-  MONITOR_REPO_URL: https://github.com/coolsnowwolf/lede
-  MONITOR_BRANCH: master
-  TARGET_WORKFLOWS: "LEDE-MangoPi_M28C-Builder"  # 修改为你实际的工作流文件名
+env:  # 全局环境变量
+  REPO_URL: https://github.com/coolsnowwolf/lede  # 要监控的仓库地址
+  REPO_BRANCH: master  # 监控的分支
 
-on:
-  workflow_dispatch:
-  schedule:
-    - cron: '0 20 * * *'  # 20:00 UTC (04:00 北京时间)
+on:  # 触发条件
+  workflow_dispatch:  # 允许手动触发
+  # schedule:  # 定时触发 (已注释)
+  #   - cron: 0 */18 * * *  # 每18小时运行一次 (UTC时间)
 
-jobs:
-  monitor_repo:
-    name: "主要单元：监控仓库"
-    runs-on: ubuntu-latest
+jobs:  # 任务定义
+  check:  # 任务ID：check
+    runs-on: ubuntu-latest  # 在最新的Ubuntu系统上运行
 
-    steps:
-      # ----------------------- 系统初始化 -----------------------
-      - name: "启动系统"
-        run: |
-          echo "==========================================="
-          echo "          LEDE 更新检查器初始化..."
-          echo "          $(date +'%Y-%m-%d %H:%M:%S')"
-          echo "==========================================="
-          echo ">> 加载核心模块..."
-          sleep 0.5
-          echo ">> 虚拟环境准备好"
-          sleep 0.3
+    steps:  # 任务步骤
+    - name: 获取最新Commit Hash  # 步骤1：获取最新commit hash
+      id: getHash  # 步骤ID
+      run: |  # 执行命令
+        git clone --depth 1 $REPO_URL -b $REPO_BRANCH .  # 克隆目标仓库(仅最新commit)
+        echo "commitHash=$(git rev-parse HEAD)" >> $GITHUB_OUTPUT  # 提取hash并输出
 
-      # ----------------------- 实际工作流 -----------------------
-      - name: "指纹扫描"
-        id: scan
-        run: |
-          echo "==========================================="
-          echo "分析目标仓库: ${{ env.MONITOR_REPO_URL }}"
-          echo "==========================================="
-          git clone --depth 1 ${{ env.MONITOR_REPO_URL }} -b ${{ env.MONITOR_BRANCH }} .
-          current_hash=$(git rev-parse HEAD)
-          echo "==========================================="
-          echo "最新提交哈希: ${current_hash:0:7}...${current_hash: -7}"
-          echo "==========================================="
-          echo "commitHash=$current_hash" >> $GITHUB_OUTPUT
+    - name: 比较Commit Hash  # 步骤2：比较hash值
+      id: cacheHash  # 步骤ID
+      uses: actions/cache@v3  # 使用cache动作
+      with:
+        path: .commitHash  # 缓存文件路径
+        key: commitHash_${{ steps.getHash.outputs.commitHash }}  # 缓存key
 
-      - name: "指纹对比"
-        id: cache_check
-        uses: actions/cache@v3
-        with:
-          path: .commitHash
-          key: commitHash_${{ steps.scan.outputs.commitHash }}
+    - name: 保存新Commit Hash  # 步骤3：如果hash变化则保存新值
+      if: steps.cacheHash.outputs.cache-hit != 'true'  # 仅当缓存未命中时执行(说明有更新)
+      run: |
+        echo ${{ steps.getHash.outputs.commitHash }} | tee .commitHash  # 存储新hash
 
-      - name: "保存新的指纹数据"
-        if: steps.cache_check.outputs.cache-hit != 'true'
-        run: |
-          echo "==========================================="
-          echo "更新指纹数据..."
-          echo "==========================================="
-          echo "${{ steps.scan.outputs.commitHash }}" | tee .commitHash
-          echo "指纹数据更新成功"
+    - name: 触发构建  # 步骤4：触发构建工作流
+      if: steps.cacheHash.outputs.cache-hit != 'true'  # 仅当有更新时触发
+      uses: peter-evans/repository-dispatch@v2  # 使用仓库分发动作
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}  # 使用 secrets 中的 GitHub token
+        event-type: Source Code Update  # 事件类型
+        client-payload: '{"workflow_to_trigger": "LEDE-MangoPi_M28C-Builder.yaml"}'  # 需要触发的工作流名称
 
-      - name: "触发关联的工作流"
-        run: |
-          echo "==========================================="
-          echo "调度中心收到指令，调度任务..."
-          echo "事件名称: ${{ github.event_name }}"
-          echo "目标工作流: ${{ env.TARGET_WORKFLOWS }}"
-          echo "==========================================="
-
-          if [ "${{ github.event_name }}" == "schedule" ] || [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            IFS=',' read -ra workflow_array <<< "${{ env.TARGET_WORKFLOWS }}"
-            for workflow in "${workflow_array[@]}"; do
-              workflow=$(echo $workflow | xargs)
-              echo "触发工作流: $workflow"
-              curl -X POST \
-                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-                -H "Accept: application/vnd.github.v3+json" \
-                "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$workflow/dispatches" \
-                -d "{\"ref\":\"master\",\"inputs\":{\"force_build\":\"true\"}}"
-              sleep 1  # 避免触发频率过高
-            done
-          else
-            echo "当前事件不是定时触发或手动触发，不执行工作流调度"
-          fi
-
-      - name: "清理日志"
-        if: always()
-        uses: Mattraks/delete-workflow-runs@v2
-        with:
-          retain_days: 0
-          keep_minimum_runs: 3
+    - name: 清理旧工作流运行记录  # 步骤5：清理旧记录
+      uses: Mattraks/delete-workflow-runs@v2  # 使用删除工作流动作
+      with:
+        retain_days: 0  # 保留0天前的记录
+        keep_minimum_runs: 2  # 但至少保留2次运行记录
