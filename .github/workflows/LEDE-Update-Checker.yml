@@ -59,24 +59,28 @@ jobs:
           echo "指纹数据更新成功"
 
       - name: "触发关联的工作流"
-        if: always()
         run: |
           echo "==========================================="
           echo "调度中心收到指令，调度任务..."
+          echo "事件名称: ${{ github.event_name }}"
           echo "目标工作流: ${{ env.TARGET_WORKFLOWS }}"
           echo "==========================================="
 
-          IFS=',' read -ra workflow_array <<< "${{ env.TARGET_WORKFLOWS }}"
-          for workflow in "${workflow_array[@]}"; do
-            workflow=$(echo $workflow | xargs)
-            echo "触发工作流: $workflow"
-            curl -X POST \
-              -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -H "Accept: application/vnd.github.v3+json" \
-              "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$workflow/dispatches" \
-              -d "{\"ref\":\"master\",\"inputs\":{\"force_build\":\"${{ github.event_name == 'schedule' }}\"}}"
-            sleep 1  # 避免触发频率过高
-          done
+          if [ "${{ github.event_name }}" == "schedule" ]; then
+            IFS=',' read -ra workflow_array <<< "${{ env.TARGET_WORKFLOWS }}"
+            for workflow in "${workflow_array[@]}"; do
+              workflow=$(echo $workflow | xargs)
+              echo "触发工作流: $workflow"
+              curl -X POST \
+                -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+                -H "Accept: application/vnd.github.v3+json" \
+                "https://api.github.com/repos/${{ github.repository }}/actions/workflows/$workflow/dispatches" \
+                -d "{\"ref\":\"master\",\"inputs\":{\"force_build\":\"true\"}}"
+              sleep 1  # 避免触发频率过高
+            done
+          else
+            echo "当前事件不是定时触发，不执行工作流调度"
+          fi
 
       - name: "清理日志"
         if: always()
