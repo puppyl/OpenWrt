@@ -134,7 +134,6 @@ jobs:
       run: |
         cd lede/bin/targets/*/*
         rm -rf packages *.buildinfo *.json *.manifest
-        rm -rf config.buildinfo
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
 
