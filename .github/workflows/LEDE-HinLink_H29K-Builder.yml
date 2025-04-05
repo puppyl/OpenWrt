@@ -1,4 +1,4 @@
-name: OpenWRT AutoBuild
+name: LEDE-HinLink_H29K-Builder
 
 on:
   workflow_dispatch:    # 允许手动触发
