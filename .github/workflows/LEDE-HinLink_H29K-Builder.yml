@@ -1,119 +1,185 @@
-name: LEDE-HinLink_H29K-Builder  # ✅ 工作流显示名称在此处定义
+name: OpenWRT AutoBuild
 
 on:
-  # ▼▼▼ 保持原有触发条件 ▼▼▼
-  repository_dispatch: {}
-  workflow_dispatch: {}
+  workflow_dispatch:    # 允许手动触发
+  schedule:
+    - cron: "0 0 * * *" # 每日UTC时间0点自动构建
 
-env:
+env:                    # 全局环境变量
+  TZ: Asia/Shanghai
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  FEEDS_CONF: feeds_config/LEDE/HinLink_H29K/feeds.conf.default
-  CONFIG_FILE: config/LEDE/HinLink_H29K/.config
-  DIY_P1_SH: DIY_Script/LEDE/HinLink_H29K/diy-part1.sh
-  DIY_P2_SH: DIY_Script/LEDE/HinLink_H29K/diy-part2.sh
-  UPLOAD_BIN_DIR: false
-  UPLOAD_FIRMWARE: true
-  UPLOAD_RELEASE: true
-  TZ: Asia/Shanghai
+  FEEDS_CONF: files/feeds.conf
+  CONFIG_FILE: files/HinLink_H29K.config
+  DIY_P1_SH: files/script/diy-part1.sh
+  DIY_P2_SH: files/script/diy-part2.sh
 
 jobs:
-  build:
+  build:                # 主构建任务
     runs-on: ubuntu-22.04
+    timeout-minutes: 180 # 3小时超时
+    
+    steps:              # 步骤开始─────────────────────────────────────
 
-    steps:
-      # ▼▼▼ 步骤名称去除了 ANSI 转义 ▼▼▼
-      - name: "✅ 1/10 仓库校验"
-        uses: actions/checkout@v4
-        shell: bash
-        run: |
-          printf "\033[1;32m[校验] 正在检查仓库状态...\033[0m\n"
-          git status
+    # ███ 初始化阶段 ████████████████████████████████████████████████████
+    - name: 校验仓库
+      uses: actions/checkout@v4   # 官方checkout action
+      
+    - name: 初始化环境
+      run: |
+        echo -e "\n\033[1;35m╔════════ 开始环境初始化 [$(date +%H:%M)] ════════╗\033[0m"
+        echo -e "\033[1;36m▷ 设置时区为 $TZ 并创建工作目录...\033[0m"
+        sudo timedatectl set-timezone "$TZ"              # 设置时区
+        sudo mkdir -p /workdir                           # 创建持久化目录
+        sudo chown $USER:$GROUPS /workdir                # 修正目录权限
+        echo -e "\033[1;32m✓ 环境就绪 ◀════════════════════════════════════\033[0m"
+        echo -e "\033[1;35m╚════════ 环境初始化完成 [耗时: $SECONDS秒] ════════╝\033[0m\n"
+      env:
+        DEBIAN_FRONTEND: noninteractive
 
-      - name: "✨ 2/10 初始化环境"
-        shell: bash
-        env:
-          DEBIAN_FRONTEND: noninteractive
-        run: |
-          printf "\033[1;35m[环境] 安装依赖 (详细日志模式)\033[0m\n"
-          # ▼▼▼ 保持原始清理和安装命令 ▼▼▼
-          sudo rm -rf /etc/apt/sources.list.d/* \
-            /usr/share/dotnet \
-            /usr/local/lib/android \
-            /opt/ghc \
-            /opt/hostedtoolcache/CodeQL
-          sudo docker image prune -af
-          sudo apt-get -qq update
-          sudo apt-get -qq install -y \
-            ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential \
-            bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext \
-            gcc-multilib g++-multilib git gperf haveged help2man intltool libc6-dev-i386 \
-            libelf-dev libfuse-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev \
-            libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev libreadline-dev \
-            libssl-dev libtool lrzsz mkisofs msmtp ninja-build p7zip p7zip-full patch \
-            pkgconf python2.7 python3 python3-pyelftools qemu-utils rsync scons \
-            squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget \
-            xmlto xxd zlib1g-dev
-          printf "\033[1;32m[环境] 依赖安装完成！当前时间: $(date)\033[0m\n"
+    # ███ 硬件检查阶段 ██████████████████████████████████████████████████
+    - name: 检查服务器配置
+      run: |
+        echo -e "\n\033[1;41m❗️ 警告 ❗️\033[0m"
+        echo -e "\033[1;33m▼ 云计算资源有限，建议控制插件数量以防超载 ▼\033[0m"
+        echo -e "\033[1;35m═▶ 检查时间: $(date +%Y-%m-%d\ %H:%M:%S) ◀═\033[0m"
+        
+        # CPU信息展示
+        echo -e "\n\033[1;36m▌━━━━━━━━━━ CPU详情 ━━━━━━━━━━▌\033[0m"
+        lscpu | grep -E "Model name|Socket|Thread|MHz" | sed 's/^/  ▏/'
+        
+        # 内存信息展示
+        echo -e "\n\033[1;36m▌━━━━━━━━━ 内存信息 ━━━━━━━━━━▌\033[0m"
+        free -h | awk '{printf "  ▏%-15s %s\n", $1, $2}' | tail -n +2
+        
+        # 存储空间展示
+        echo -e "\n\033[1;36m▌━━━━━━━━━ 存储空间 ━━━━━━━━━━▌\033[0m"
+        df -hT / | awk 'NR==2 {printf "  ▏可用: %s/%s (%s)\n", $4,$3,$6}'
+        echo -e "\033[1;35m═▶ 系统检查完毕 [耗时: $SECONDS秒] ◀═\033[0m\n"
 
-      - name: "📊 3/10 硬件检测"
-        shell: bash
-        run: |
-          # ▼▼▼ 保留原始颜色输出但仅作用于日志 ▼▼▼
-          printf "\033[1;31m[警告] 高性能服务器可提升编译速度！\033[0m\n"
-          printf "\033[1;36m▬▬ CPU ▬▶ \033[0m$(lscpu | grep 'Model name' | cut -d':' -f2)\n"
-          printf "\033[1;36m▬▬ 内存 ▬▶ \033[0m$(free -h | awk '/Mem:/ {print $2}')\n"
+    # ███ 源码获取阶段 ████████████████████████████████████████████████
+    - name: 获取 OpenWRT 源码
+      working-directory: /workdir  # 指定工作目录
+      run: |
+        echo -e "\n\033[1;33m⬇️  开始克隆仓库 ($REPO_BRANCH 分支)...\033[0m"
+        git clone $REPO_URL -b $REPO_BRANCH lede --depth=1 2>&1 | sed 's/^/  ➤ /'
+        
+        # 创建软链方便后续操作
+        ln -sf /workdir/lede $GITHUB_WORKSPACE/lede
+        echo -e "\033[1;32m✓ 源码获取完成! (大小: $(du -sh lede | cut -f1))\033[0m\n"
 
-      - name: "📥 4/10 克隆源码"
-        working-directory: /workdir
-        shell: bash
-        run: |
-          printf "\033[1;35m[源码] 克隆仓库到 /workdir/lede ...\033[0m\n"
-          git clone --depth 1 $REPO_URL -b $REPO_BRANCH lede
-          ln -sf /workdir/lede $GITHUB_WORKSPACE/lede
+    # ███ 自定义配置阶段 ███████████████████████████████████████████████
+    - name: 应用自定义配置
+      run: |
+        echo -e "\n\033[1;35m⚙️  开始注入自定义配置\033[0m"
+        
+        # 拷贝设备配置文件
+        if [ -e files ]; then
+          echo -e "  🛠 应用 HinLink 配置..." ; sounds/Fans/fan3
+          cp -rf files/LEDE/HinLink_H29K/* lede/
+        fi
+        
+        # 更新 feeds 配置
+        [ -e "$FEEDS_CONF" ] && {
+          echo -e "  🔄 替换 feeds 配置" ; sounds/Cartoon/jump
+          mv $FEEDS_CONF lede/feeds.conf.default
+        }
+        
+        # 执行自定义脚本
+        echo -e "  📜 执行 DIY 脚本" ; sounds/Interface/menu1
+        chmod +x $DIY_P1_SH
+        cd lede && $GITHUB_WORKSPACE/$DIY_P1_SH
+        echo -e "\033[1;32m✓ 配置应用成功 ◀════════════════════════════\033[0m\n"
 
-      # ▼▼▼ 后续步骤保持相同修复模式 ▼▼▼
-      - name: "⚡ 5/10 加载订阅源"
-        shell: bash
-        run: |
-          printf "\033[1;35m[订阅] 加载 feeds.conf 配置文件\033[0m\n"
-          [ -f "$FEEDS_CONF" ] && cp -v "$FEEDS_CONF" lede/feeds.conf.default
-          chmod +x "$DIY_P1_SH"
-          cd lede && "$GITHUB_WORKSPACE/$DIY_P1_SH"
+    # ███ 依赖管理阶段 ██████████████████████████████████████████████████
+    - name: 更新软件源
+      run: |
+        echo -e "\n\033[1;34m🔄 正在更新软件源 (此步骤可能需要3-5分钟)...\033[0m"
+        cd lede
+        ./scripts/feeds update -a | while read line; do
+          echo -e "  ▹ ${line}"
+        done
+        echo -e "\033[1;32m✓ 源更新完成，共更新 $(./scripts/feeds list -r | wc -l) 个包\033[0m\n"
 
-      - name: "🔄 6/10 更新订阅源"
-        shell: bash
-        run: |
-          printf "\033[1;35m[订阅] 更新 feeds...\033[0m\n"
-          cd lede && ./scripts/feeds update -a
+    - name: 安装依赖包
+      run: |
+        echo -e "\n\033[1;34m📦 正在安装基础软件包...\033[0m"
+        cd lede
+        ./scripts/feeds install -a | awk '{printf "  ▸ %s\n", $0}'
+        echo -e "\033[1;32m✓ 已安装 $(ls package/ | wc -w) 个软件包\033[0m\n"
 
-      - name: "📦 7/10 安装订阅源"
-        shell: bash
-        run: |
-          printf "\033[1;35m[订阅] 安装 feeds 软件包\033[0m\n"
-          cd lede && ./scripts/feeds install -a
+    # ███ 编译准备阶段 ██████████████████████████████████████████████████
+    - name: 应用设备配置
+      run: |
+        echo -e "\n\033[1;33m🔧 正在配置设备参数...\033[0m"
+        [ -e "$CONFIG_FILE" ] && {
+          cp "$CONFIG_FILE" lede/.config
+          echo -e "  ✅ 使用预设配置文件"
+        }
+        
+        # 执行第二阶段自定义脚本
+        chmod +x "$DIY_P2_SH"
+        cd lede
+        "$GITHUB_WORKSPACE/$DIY_P2_SH" | sed 's/^/  ➜ /'
+        echo -e "\033[1;32m✓ 设备配置完成 ◀════════════════════════════\033[0m\n"
 
-      - name: "🔧 8/10 加载配置"
-        shell: bash
-        run: |
-          printf "\033[1;35m[配置] 应用预设文件 $CONFIG_FILE\033[0m\n"
-          [ -f "$CONFIG_FILE" ] && cp -v "$CONFIG_FILE" lede/.config
-          chmod +x "$DIY_P2_SH"
-          cd lede && "$GITHUB_WORKSPACE/$DIY_P2_SH"
+    - name: 下载编译资源
+      run: |
+        echo -e "\n\033[1;36m⏳ 开始下载依赖文件 (预计需要5-15分钟)...\033[0m"
+        cd lede
+        make defconfig
+        time make download -j$(($(nproc)*2)) | tee download.log  # 并行下载
+        
+        # 处理下载失败的小文件
+        echo -e "\n\033[1;33m🔍 检查无效下载...\033[0m"
+        awk '/size mismatch/{print $2}' download.log | xargs -I{} rm -f {}
+        echo -e "\033[1;32m✓ 资源准备完毕 (下载目录大小: $(du -sh dl | cut -f1))\033[0m\n"
 
-      - name: "🔨 9/10 编译固件"
-        shell: bash
-        run: |
-          printf "\033[1;35m[编译] 启动多线程编译 (CPU 核心数: $(nproc))\033[0m\n"
-          cd lede
-          make -j$(nproc) || { 
-            printf "\033[1;31m[错误] 并行编译失败，切换到单线程模式！\033[0m\n"
-            make -j1 V=s
-          }
+    # ███ 编译阶段 ██████████████████████████████████████████████████████
+    - name: 执行固件编译
+      timeout-minutes: 120
+      run: |
+        echo -e "\n\033[1;41m🔥 重要编译阶段开始 ━ $(date +%H:%M:%S) ━━━━━━━━\033[0m"
+        echo -e "  💻 使用 $(nproc) 线程编译"
+        echo -e "  ⏳ 预计耗时: 30 ~ 90 分钟"
+        echo -e "\033[1;31m❗ 此阶段出现错误需要人工介入检查\033[0m"
+        
+        cd lede
+        SECONDS=0  # 计时开始
+        make -j$(nproc) V=s 2>&1 | tee build.log
+        
+        # 生成编译报告
+        echo -e "\n\033[1;35m📊 编译统计信息:\033[0m"
+        echo -e "  ⌛ 总耗时: $((SECONDS / 60))分$((SECONDS % 60))秒"
+        grep -oP 'warning:.*' build.log | sort | uniq -c | sort -nr | head -5 | sed 's/^/  ⚠️  /'
+        echo -e "\033[1;42m🎉 固件编译成功！\033[0m\n"
 
-      - name: "🚀 10/10 上传固件"
-        if: ${{ success() && env.UPLOAD_FIRMWARE == 'true' }}
-        uses: actions/upload-artifact@v4
-        with:
-          name: H29K-Bin-$(date +'%Y%m%d')
-          path: lede/bin/targets/**/*.bin
+    # ███ 后期处理阶段 █████████████████████████████████████████████████
+    - name: 处理生成文件
+      if: success()
+      run: |
+        echo -e "\n\033[1;35m📦 打包编译产物...\033[0m"
+        cd lede/bin/targets/*/*
+        mkdir -p artifact
+        mv *.bin *.manifest artifact/ || true
+        
+        echo -e "\033[1;36m🔄 生成checksum校验文件...\033[0m"
+        sha256sum artifact/* > checksums.txt
+        echo -e "\033[1;32m✓ 生成文件大小: $(du -sh artifact)\033[0m\n"
+
+    - name: 清理编译缓存
+      if: always()
+      run: |
+        echo -e "\n\033[1;33m🧹 执行清理操作...\033[0m"
+        cd lede
+        make clean
+        sudo rm -rf /workdir/lede/build_dir /workdir/lede/staging_dir
+        echo -e "  🗑 已释放 $(df -h / | awk 'NR==2 {print $4}') 可用空间"
+
+    # ███ 结果上传阶段 █████████████████████████████████████████████████
+    - name: 上传固件
+      uses: actions/upload-artifact@v3
+      with:
+        name: OpenWRT-Build-$(date +%Y%m%d)
+        path: lede/bin/targets/*/*/artifact/
+        retention-days: 7
