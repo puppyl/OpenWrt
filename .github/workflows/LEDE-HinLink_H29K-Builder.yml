@@ -70,26 +70,26 @@ jobs:
 
     # ███ 自定义配置阶段 ███████████████████████████████████████████████
     - name: 应用自定义配置
-    run: |
-      echo -e "\n\033[1;35m⚙️  开始注入自定义配置\033[0m"
-      
-      # 拷贝设备配置文件
-      if [ -e files ]; then
-        echo -e "  🛠 应用 HinLink 配置..."
-        cp -rf files/LEDE/HinLink_H29K/* lede/
-      fi
-      
-      # 更新 feeds 配置
-      [ -e "$FEEDS_CONF" ] && {
-        echo -e "  🔄 替换 feeds 配置"
-        mv $FEEDS_CONF lede/feeds.conf.default
-      }
-      
-      # 执行自定义脚本
-      echo -e "  📜 执行 DIY 脚本"
-      chmod +x $DIY_P1_SH
-      cd lede && $GITHUB_WORKSPACE/$DIY_P1_SH
-      echo -e "\033[1;32m✓ 配置应用成功 ◀════════════════════════════\033[0m\n"
+      run: |
+        echo -e "\n\033[1;35m⚙️  开始注入自定义配置\033[0m"
+        
+        # 拷贝设备配置文件
+        if [ -e files ]; then
+          echo -e "  🛠 应用 HinLink 配置..."
+          cp -rf files/LEDE/HinLink_H29K/* lede/
+        fi
+        
+        # 更新 feeds 配置
+        [ -e "$FEEDS_CONF" ] && {
+          echo -e "  🔄 替换 feeds 配置"
+          mv $FEEDS_CONF lede/feeds.conf.default
+        }
+        
+        # 执行自定义脚本
+        echo -e "  📜 执行 DIY 脚本"
+        chmod +x $DIY_P1_SH
+        cd lede && $GITHUB_WORKSPACE/$DIY_P1_SH
+        echo -e "\033[1;32m✓ 配置应用成功 ◀════════════════════════════\033[0m\n"
 
 
     # ███ 依赖管理阶段 ██████████████████████████████████████████████████
