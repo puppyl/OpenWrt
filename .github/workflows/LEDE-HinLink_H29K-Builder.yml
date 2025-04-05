@@ -1,186 +1,182 @@
 name: LEDE-HinLink_H29K-Builder
 
 on:
-  workflow_dispatch:    # 允许手动触发
-  schedule:
-    - cron: "0 0 * * *" # 每日UTC时间0点自动构建
+  repository_dispatch:
+  workflow_dispatch:
 
-env:                    # 全局环境变量
-  TZ: Asia/Shanghai
+env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  FEEDS_CONF: files/feeds.conf
-  CONFIG_FILE: files/HinLink_H29K.config
-  DIY_P1_SH: files/script/diy-part1.sh
-  DIY_P2_SH: files/script/diy-part2.sh
+  FEEDS_CONF: feeds_config/LEDE/HinLink_H29K/feeds.conf.default
+  CONFIG_FILE: config/LEDE/HinLink_H29K/.config
+  DIY_P1_SH: DIY_Script/LEDE/HinLink_H29K/diy-part1.sh
+  DIY_P2_SH: DIY_Script/LEDE/HinLink_H29K/diy-part2.sh
+  UPLOAD_BIN_DIR: false
+  UPLOAD_FIRMWARE: true
+  UPLOAD_RELEASE: true
+  TZ: Asia/Shanghai
 
 jobs:
-  build:                # 主构建任务
+  build:
     runs-on: ubuntu-22.04
-    timeout-minutes: 180 # 3小时超时
-    
-    steps:              # 步骤开始─────────────────────────────────────
 
-    # ███ 初始化阶段 ████████████████████████████████████████████████████
-    - name: 校验仓库
-      uses: actions/checkout@v4   # 官方checkout action
-      
-    - name: 初始化环境
-      run: |
-        echo -e "\n\033[1;35m╔════════ 开始环境初始化 [$(date +%H:%M)] ════════╗\033[0m"
-        echo -e "\033[1;36m▷ 设置时区为 $TZ 并创建工作目录...\033[0m"
-        sudo timedatectl set-timezone "$TZ"              # 设置时区
-        sudo mkdir -p /workdir                           # 创建持久化目录
-        sudo chown $USER:$GROUPS /workdir                # 修正目录权限
-        echo -e "\033[1;32m✓ 环境就绪 ◀════════════════════════════════════\033[0m"
-        echo -e "\033[1;35m╚════════ 环境初始化完成 [耗时: $SECONDS秒] ════════╝\033[0m\n"
+    steps:
+    - name: 🔍 校验仓库完整性
+      uses: actions/checkout@main
+
+    - name: 🛠️ 初始化编译环境
       env:
         DEBIAN_FRONTEND: noninteractive
-
-    # ███ 硬件检查阶段 ██████████████████████████████████████████████████
-    - name: 检查服务器配置
       run: |
-        echo -e "\n\033[1;41m❗️ 警告 ❗️\033[0m"
-        echo -e "\033[1;33m▼ 云计算资源有限，建议控制插件数量以防超载 ▼\033[0m"
-        echo -e "\033[1;35m═▶ 检查时间: $(date +%Y-%m-%d\ %H:%M:%S) ◀═\033[0m"
-        
-        # CPU信息展示
-        echo -e "\n\033[1;36m▌━━━━━━━━━━ CPU详情 ━━━━━━━━━━▌\033[0m"
-        lscpu | grep -E "Model name|Socket|Thread|MHz" | sed 's/^/  ▏/'
-        
-        # 内存信息展示
-        echo -e "\n\033[1;36m▌━━━━━━━━━ 内存信息 ━━━━━━━━━━▌\033[0m"
-        free -h | awk '{printf "  ▏%-15s %s\n", $1, $2}' | tail -n +2
-        
-        # 存储空间展示
-        echo -e "\n\033[1;36m▌━━━━━━━━━ 存储空间 ━━━━━━━━━━▌\033[0m"
-        df -hT / | awk 'NR==2 {printf "  ▏可用: %s/%s (%s)\n", $4,$3,$6}'
-        echo -e "\033[1;35m═▶ 系统检查完毕 [耗时: $SECONDS秒] ◀═\033[0m\n"
+        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+        sudo docker image prune --all --force
+        sudo -E apt-get -qq update
+        sudo -E apt-get -qq install ack antlr3 asciidoc autoconf automake autopoint binutils bison build-essential bzip2 ccache cmake cpio curl device-tree-compiler fastjar flex gawk gettext gcc-multilib g++-multilib git gperf haveged help2man intltool libc6-dev-i386 libelf-dev libfuse-dev libglib2.0-dev libgmp3-dev libltdl-dev libmpc-dev libmpfr-dev libncurses5-dev libncursesw5-dev libpython3-dev libreadline-dev libssl-dev libtool lrzsz mkisofs msmtp ninja-build p7zip p7zip-full patch pkgconf python2.7 python3 python3-pyelftools python3-setuptools qemu-utils rsync scons squashfs-tools subversion swig texinfo uglifyjs upx-ucl unzip vim wget xmlto xxd zlib1g-dev
+        sudo -E apt-get -qq autoremove --purge
+        sudo -E apt-get -qq clean
+        sudo timedatectl set-timezone "$TZ"
+        sudo mkdir -p /workdir
+        sudo chown $USER:$GROUPS /workdir
+        echo -e "\033[1;32m✓ 环境初始化完成！\033[0m"
 
-    # ███ 源码获取阶段 ████████████████████████████████████████████████
-    - name: 获取 OpenWRT 源码
-      working-directory: /workdir  # 指定工作目录
+    - name: 📊 服务器资源配置检查
       run: |
-        echo -e "\n\033[1;33m⬇️  开始克隆仓库 ($REPO_BRANCH 分支)...\033[0m"
-        git clone $REPO_URL -b $REPO_BRANCH lede --depth=1 2>&1 | sed 's/^/  ➤ /'
-        
-        # 创建软链方便后续操作
+        echo -e "\n\033[1;31m⚠ 性能警告：本服务器为共享资源，请勿开启过多插件以免超限！\033[0m"
+        echo -e "\n\033[1;36m★ 常见机型参考CPU性能 (降序)：7763 > 8370C > 8272CL > 8171M > E5-2673\033[0m\n"
+        echo -e "\033[1;34m══════════════ 硬件详情 ══════════════\033[0m"
+        echo -e "\033[1;33m● CPU信息\033[0m"
+        echo "CPU物理数量:$(cat /proc/cpuinfo| grep "physical id"| sort| uniq| wc -l)"
+        echo "CPU线程数量: $(nproc)"
+        echo -e "CPU型号: $(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c | sed 's/^[ \t]*//')"
+        echo -e "\n\033[1;33m● 内存信息\033[0m"
+        echo -e "$(sudo lshw -short -C memory | grep GiB) \n"
+        echo -e "\033[1;33m● 存储信息\033[0m"
+        echo -e  "物理硬盘数：$(ls /dev/sd* | grep -v [1-9] | wc -l)"
+        echo -e "\033[1;37m文件系统      类型  总容量  已用  可用  使用率 挂载点\033[0m"
+        df -Th
+
+    - name: 📥 克隆LEDE源码库
+      working-directory: /workdir
+      run: |
+        df -hT $PWD
+        git clone $REPO_URL -b $REPO_BRANCH lede
         ln -sf /workdir/lede $GITHUB_WORKSPACE/lede
-        echo -e "\033[1;32m✓ 源码获取完成! (大小: $(du -sh lede | cut -f1))\033[0m\n"
+        echo -e "\033[1;32m✓ LEDE源码克隆完成！\033[0m"
 
-    # ███ 自定义配置阶段 ███████████████████████████████████████████████
-    - name: 应用自定义配置
+    - name: 🔩 加载自定义订阅源
       run: |
-        echo -e "\n\033[1;35m⚙️  开始注入自定义配置\033[0m"
-        
-        # 拷贝设备配置文件
-        if [ -e files ]; then
-          echo -e "  🛠 应用 HinLink 配置..."
-          cp -rf files/LEDE/HinLink_H29K/* lede/
-        fi
-        
-        # 更新 feeds 配置
-        [ -e "$FEEDS_CONF" ] && {
-          echo -e "  🔄 替换 feeds 配置"
-          mv $FEEDS_CONF lede/feeds.conf.default
-        }
-        
-        # 执行自定义脚本
-        echo -e "  📜 执行 DIY 脚本"
+        [ -e files ] && cp -rf files/LEDE/HinLink_H29K/* lede/
+        [ -e files ] && mkdir -p lede/package/feeds/modem && cp -rf files//Modem/quectel_cm_5G lede/package/feeds/modem
+        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF lede/feeds.conf.default
         chmod +x $DIY_P1_SH
-        cd lede && $GITHUB_WORKSPACE/$DIY_P1_SH
-        echo -e "\033[1;32m✓ 配置应用成功 ◀════════════════════════════\033[0m\n"
-
-
-    # ███ 依赖管理阶段 ██████████████████████████████████████████████████
-    - name: 更新软件源
-      run: |
-        echo -e "\n\033[1;34m🔄 正在更新软件源 (此步骤可能需要3-5分钟)...\033[0m"
         cd lede
-        ./scripts/feeds update -a | while read line; do
-          echo -e "  ▹ ${line}"
-        done
-        echo -e "\033[1;32m✓ 源更新完成，共更新 $(./scripts/feeds list -r | wc -l) 个包\033[0m\n"
+        $GITHUB_WORKSPACE/$DIY_P1_SH
+        echo -e "\033[1;32m✓ 自定义订阅源加载完成！\033[0m"
 
-    - name: 安装依赖包
-      run: |
-        echo -e "\n\033[1;34m📦 正在安装基础软件包...\033[0m"
-        cd lede
-        ./scripts/feeds install -a | awk '{printf "  ▸ %s\n", $0}'
-        echo -e "\033[1;32m✓ 已安装 $(ls package/ | wc -w) 个软件包\033[0m\n"
+    - name: 🔄 更新拉取源
+      run: cd lede && ./scripts/feeds update -a
+      echo -e "\033[1;32m✓ 拉取源更新完成！\033[0m"
 
-    # ███ 编译准备阶段 ██████████████████████████████████████████████████
-    - name: 应用设备配置
+    - name: 📦 安装拉取源
+      run: cd lede && ./scripts/feeds install -a
+      echo -e "\033[1;32m✓ 拉取源安装完成！\033[0m"
+
+    - name: 📈 加载自定义配置
       run: |
-        echo -e "\n\033[1;33m🔧 正在配置设备参数...\033[0m"
-        [ -e "$CONFIG_FILE" ] && {
-          cp "$CONFIG_FILE" lede/.config
-          echo -e "  ✅ 使用预设配置文件"
-        }
-        
-        # 执行第二阶段自定义脚本
+        [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config
         chmod +x "$DIY_P2_SH"
         cd lede
-        "$GITHUB_WORKSPACE/$DIY_P2_SH" | sed 's/^/  ➜ /'
-        echo -e "\033[1;32m✓ 设备配置完成 ◀════════════════════════════\033[0m\n"
+        "$GITHUB_WORKSPACE/$DIY_P2_SH"
+        echo -e "\033[1;32m✓ 自定义配置加载完成！\033[0m"
 
-    - name: 下载编译资源
+    - name: ⚡ 下载软件包
+      id: package
       run: |
-        echo -e "\n\033[1;36m⏳ 开始下载依赖文件 (预计需要5-15分钟)...\033[0m"
         cd lede
         make defconfig
-        time make download -j$(($(nproc)*2)) | tee download.log  # 并行下载
-        
-        # 处理下载失败的小文件
-        echo -e "\n\033[1;33m🔍 检查无效下载...\033[0m"
-        awk '/size mismatch/{print $2}' download.log | xargs -I{} rm -f {}
-        echo -e "\033[1;32m✓ 资源准备完毕 (下载目录大小: $(du -sh dl | cut -f1))\033[0m\n"
+        make download -j8
+        find dl -size -1024c -exec ls -l {} \;
+        find dl -size -1024c -exec rm -f {} \;
+        echo -e "\033[1;32m✓ 软件包下载完成！异常小文件已清理\033[0m"
 
-    # ███ 编译阶段 ██████████████████████████████████████████████████████
-    - name: 执行固件编译
-      timeout-minutes: 120
+    - name: 🏗️ 编译OpenWrt固件
+      id: compile
       run: |
-        echo -e "\n\033[1;41m🔥 重要编译阶段开始 ━ $(date +%H:%M:%S) ━━━━━━━━\033[0m"
-        echo -e "  💻 使用 $(nproc) 线程编译"
-        echo -e "  ⏳ 预计耗时: 30 ~ 90 分钟"
-        echo -e "\033[1;31m❗ 此阶段出现错误需要人工介入检查\033[0m"
-        
         cd lede
-        SECONDS=0  # 计时开始
-        make -j$(nproc) V=s 2>&1 | tee build.log
-        
-        # 生成编译报告
-        echo -e "\n\033[1;35m📊 编译统计信息:\033[0m"
-        echo -e "  ⌛ 总耗时: $((SECONDS / 60))分$((SECONDS % 60))秒"
-        grep -oP 'warning:.*' build.log | sort | uniq -c | sort -nr | head -5 | sed 's/^/  ⚠️  /'
-        echo -e "\033[1;42m🎉 固件编译成功！\033[0m\n"
+        echo -e "\033[1;33m正在使用 $(nproc) 线程进行编译...\033[0m"
+        make -j$(nproc) || make -j1 || make -j1 V=s
+        echo "status=success" >> $GITHUB_OUTPUT
+        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+        [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
+        echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+        echo -e "\033[1;32m✓ 固件编译完成！设备标识已导出\033[0m"
 
-    # ███ 后期处理阶段 █████████████████████████████████████████████████
-    - name: 处理生成文件
-      if: success()
-      run: |
-        echo -e "\n\033[1;35m📦 打包编译产物...\033[0m"
-        cd lede/bin/targets/*/*
-        mkdir -p artifact
-        mv *.bin *.manifest artifact/ || true
-        
-        echo -e "\033[1;36m🔄 生成checksum校验文件...\033[0m"
-        sha256sum artifact/* > checksums.txt
-        echo -e "\033[1;32m✓ 生成文件大小: $(du -sh artifact)\033[0m\n"
+    - name: 📊 检查空间使用情况
+      if: (!cancelled())
+      run: df -hT
+      echo -e "\033[1;32m✓ 空间检查完成！\033[0m"
 
-    - name: 清理编译缓存
-      if: always()
-      run: |
-        echo -e "\n\033[1;33m🧹 执行清理操作...\033[0m"
-        cd lede
-        make clean
-        sudo rm -rf /workdir/lede/build_dir /workdir/lede/staging_dir
-        echo -e "  🗑 已释放 $(df -h / | awk 'NR==2 {print $4}') 可用空间"
-
-    # ███ 结果上传阶段 █████████████████████████████████████████████████
-    - name: 上传固件
-      uses: actions/upload-artifact@v4
+    - name: 📦 上传bin目录
+      uses: actions/upload-artifact@main
+      if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
-        name: OpenWRT-Build-$(date +%Y%m%d)
-        path: lede/bin/targets/*/*/artifact/
-        retention-days: 7
+        name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: lede/bin
+      echo -e "\033[1;32m✓ Bin目录上传完成！\033[0m"
+
+    - name: 🗂️ 整理文件
+      id: organize
+      if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
+      run: |
+        cd lede/bin/targets/*/*
+        rm -rf packages *.buildinfo *.json *.manifest
+        rm -rf config.buildinfo
+        echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo -e "\033[1;32m✓ 文件整理完成！\033[0m"
+
+    - name: 📦 上传固件目录
+      uses: actions/upload-artifact@main
+      if: steps.organize.outputs.status == 'success' && !cancelled()
+      with:
+        name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
+        path: ${{ env.FIRMWARE }}
+      echo -e "\033[1;32m✓ 固件上传完成！\033[0m"
+
+    - name: 📣 生成发布标签
+      id: tag
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      run: |
+        echo "release_tag=LEDE-HinLink_H29K-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
+        touch release.txt
+        [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
+        echo "status=success" >> $GITHUB_OUTPUT
+        echo -e "\033[1;32m✓ 发布标签生成完成！\033[0m"
+
+    - name: 📦 上传固件以发布
+      uses: softprops/action-gh-release@master
+      if: steps.tag.outputs.status == 'success' && !cancelled()
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ steps.tag.outputs.release_tag }}
+        body_path: release.txt
+        files: ${{ env.FIRMWARE }}/*
+      echo -e "\033[1;32m✓ 固件发布完成！\033[0m"
+
+    - name: 🚮 删除工作流运行
+      uses: Mattraks/delete-workflow-runs@main
+      with:
+        retain_days: 0
+        keep_minimum_runs: 2
+      echo -e "\033[1;32m✓ 工作流运行记录删除成功！\033[0m"
+
+    - name: 📁 删除旧版本
+      uses: dev-drprasad/delete-older-releases@master
+      if: env.UPLOAD_RELEASE == 'true' && !cancelled()
+      with:
+        keep_latest: 100
+        delete_tags: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      echo -e "\033[1;32m✓ 旧版本删除成功！\033[0m"
