@@ -1,4 +1,4 @@
-name: LEDE-HinLink_H29K-Builder
+    name: LEDE-HinLink_H29K-Builder
 
 on:
   repository_dispatch:
