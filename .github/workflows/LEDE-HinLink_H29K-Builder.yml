@@ -35,15 +35,11 @@ jobs:
     steps:
     - name: 校验
       uses: actions/checkout@main
-      run: |
-        echo -e "\033[1;32m[校验] 开始校验仓库... \033[0m"
 
     - name: 初始化环境
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
-        echo -e "\033[1;32m[初始化环境] \033[0m"
-        echo -e "\033[1;34m  >>> 准备环境... \033[0m"
         sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
         sudo docker image prune --all --force
         sudo -E apt-get -qq update
@@ -53,82 +49,68 @@ jobs:
         sudo timedatectl set-timezone "$TZ"
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
-        echo -e "\033[1;34m  >>> 环境准备完成！\033[0m"
 
     - name: 检查服务器配置
       run: |
-        echo -e "\033[1;33m[警告] 分配的服务器性能有限，若选择的插件过多，务必注意CPU性能！\033[0m"
-        echo -e "\033[1;34m  >>> 已知CPU型号(按性能降序): 7763，8370C，8272CL，8171M，E5-2673 \033[0m\n"
-        echo -e "\033[1;32m-------------- -----------CPU信息------------------------------------------\033[0m"
-        echo -e "CPU物理数量: \033[1;36m$(cat /proc/cpuinfo| grep "physical id"| sort| uniq| wc -l)\033[0m"
-        echo -e "CPU线程数量: \033[1;36m$(nproc)\033[0m"
-        echo -e "CPU核心及版本信息：\033[1;36m$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c)\033[0m \n"
-        echo -e "\033[1;32m-------------------------------内存信息-------------------------------------------\033[0m"
-        echo -e "已安装内存详细信息：\033[1;36m$(sudo lshw -short -C memory | grep GiB)\033[0m \n"
-        echo -e "\033[1;32m-----------------------------硬盘信息---------------------------------------------\033[0m"
-        echo -e "硬盘数量：\033[1;36m$(ls /dev/sd* | grep -v [1-9] | wc -l)\033[0m"
-        echo -e "硬盘详情：\033[1;36m"
+        echo "警告⚠"
+        echo "分配的服务器性能有限，若选择的插件过多，务必注意CPU性能！"
+        echo -e "已知CPU型号(降序): 7763，8370C，8272CL，8171M，E5-2673 \n"
+        echo -e "-------------- ------------CPU信息------------------------------------------"
+        echo "CPU物理数量:$(cat /proc/cpuinfo| grep "physical id"| sort| uniq| wc -l)"
+        echo "CPU线程数量: $(nproc)"
+        echo -e "CPU核心及版本信息：$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
+        echo "-------------------------------内存信息-------------------------------------------"
+        echo "已安装内存详细信息："
+        echo -e "$(sudo lshw -short -C memory | grep GiB) \n"
+        echo "-----------------------------硬盘信息---------------------------------------------"
+        echo -e  "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)"
+        echo "硬盘详情："
         echo "系统空间        类型   总数  已用  可用  使用率"
         df -Th
-        echo -e "\033[0m"
 
     - name: 克隆源代码
       working-directory: /workdir
       run: |
-        echo -e "\033[1;32m[克隆源代码] 开始克隆... \033[0m"
         df -hT $PWD
         git clone $REPO_URL -b $REPO_BRANCH lede
         ln -sf /workdir/lede $GITHUB_WORKSPACE/lede
-        echo -e "\033[1;34m  >>> 源代码克隆完成！\033[0m"
 
     - name: 加载自定义订阅源
       run: |
-        echo -e "\033[1;32m[加载自定义订阅源] 开始加载... \033[0m"
         [ -e files ] && cp -rf files/LEDE/HinLink_H29K/* lede/
         [ -e files ] && mkdir -p lede/package/feeds/modem && cp -rf files//Modem/quectel_cm_5G lede/package/feeds/modem
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF lede/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd lede
         $GITHUB_WORKSPACE/$DIY_P1_SH
-        echo -e "\033[1;34m  >>> 自定义订阅源加载完成！\033[0m"
 
     - name: 更新拉取源
-      run: |
-        echo -e "\033[1;32m[更新拉取源] 开始更新... \033[0m"
-        cd lede && ./scripts/feeds update -a
-        echo -e "\033[1;34m  >>> 源更新完成！\033[0m"
+      run: cd lede && ./scripts/feeds update -a
 
     - name: 安装拉取源
-      run: |
-        echo -e "\033[1;32m[安装拉取源] 开始安装... \033[0m"
-        cd lede && ./scripts/feeds install -a
-        echo -e "\033[1;34m  >>> 源安装完成！\033[0m"
+      run: cd lede && ./scripts/feeds install -a
 
     - name: 加载自定义配置
       run: |
-        echo -e "\033[1;32m[加载自定义配置] 开始加载... \033[0m"
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config
         chmod +x "$DIY_P2_SH"
         cd lede
         "$GITHUB_WORKSPACE/$DIY_P2_SH"
-        echo -e "\033[1;34m  >>> 自定义配置加载完成！\033[0m"
 
     - name: 下载软件包
       id: package
       run: |
-        echo -e "\033[1;32m[下载软件包] 开始下载... \033[0m"
         cd lede
         make defconfig
         make download -j8
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
-        echo -e "\033[1;34m  >>> 软件包下载完成！\033[0m"
 
     - name: 编译固件
       id: compile
       run: |
         cd lede
-        echo -e "\033[1;32m[编译固件] \033[1;34m$(nproc) \033[1;32m线程开始编译固件，速度与激情，科技的力量！\033[0m"
+        echo -e "$(nproc) thread compile"
         make -j$(nproc) || make -j1 || make -j1 V=s
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
@@ -137,10 +119,7 @@ jobs:
 
     - name: 检查空间使用情况
       if: (!cancelled())
-      run: |
-        echo -e "\033[1;32m[检查空间使用情况] 检查磁盘使用率... \033[0m"
-        df -hT
-        echo -e "\033[1;34m  >>> 空间使用情况检查完成！\033[0m"
+      run: df -hT
 
     - name: 上传bin目录
       uses: actions/upload-artifact@main
@@ -148,20 +127,16 @@ jobs:
       with:
         name: OpenWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: lede/bin
-      run: |
-        echo -e "\033[1;32m[上传bin目录] 开始上传... \033[0m"
 
     - name: 整理文件
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
-        echo -e "\033[1;32m[整理文件] 开始整理... \033[0m"
         cd lede/bin/targets/*/*
         rm -rf packages *.buildinfo *.json *.manifest
         rm -rf config.buildinfo
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
-        echo -e "\033[1;34m  >>> 文件整理完成！\033[0m"
 
     - name: 上传固件目录
       uses: actions/upload-artifact@main
@@ -169,19 +144,15 @@ jobs:
       with:
         name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
-      run: |
-        echo -e "\033[1;32m[上传固件目录] 开始上传... \033[0m"
 
     - name: 生成发布标签
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo -e "\033[1;32m[生成发布标签] 生成新的发布标签... \033[0m"
         echo "release_tag=LEDE-HinLink_H29K-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
         touch release.txt
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
-        echo -e "\033[1;34m  >>> 发布标签生成完成！\033[0m"
 
     - name: 上传固件以发布
       uses: softprops/action-gh-release@master
@@ -192,16 +163,12 @@ jobs:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
         files: ${{ env.FIRMWARE }}/*
-      run: |
-        echo -e "\033[1;32m[上传固件以发布] 上传固件至发布... \033[0m"
 
     - name: 删除工作流运行
       uses: Mattraks/delete-workflow-runs@main
       with:
         retain_days: 0
         keep_minimum_runs: 2
-      run: |
-        echo -e "\033[1;32m[删除工作流运行] 清理旧的工作流运行... \033[0m"
 
     - name: 删除旧版本
       uses: dev-drprasad/delete-older-releases@master
@@ -211,5 +178,3 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: |
-        echo -e "\033[1;32m[删除旧版本] 清理旧版本... \033[0m"
