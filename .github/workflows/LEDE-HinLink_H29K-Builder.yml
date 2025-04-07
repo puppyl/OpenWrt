@@ -81,6 +81,7 @@ jobs:
         [ -e Files ] && mkdir -p lede/package/feeds/modem && cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
         cd lede
         chmod +x $GITHUB_WORKSPACE/$Feeds_SH && $GITHUB_WORKSPACE/$Feeds_SH
+        chmod +x $GITHUB_WORKSPACE/$Settings_SH && $GITHUB_WORKSPACE/$Packages_SH
 
     - name: 更新拉取源
       run: cd lede && ./scripts/feeds update -a
@@ -93,7 +94,6 @@ jobs:
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config || echo "文件 $CONFIG_FILE 不存在"
         chmod +x "$Settings_SH" "$Packages_SH"
         cd lede || exit 1
-        $GITHUB_WORKSPACE/$Settings_SH && $GITHUB_WORKSPACE/$Packages_SH
     
 
     - name: 下载软件包
