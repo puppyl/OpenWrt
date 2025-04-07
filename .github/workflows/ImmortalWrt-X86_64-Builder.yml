@@ -65,7 +65,7 @@ jobs:
 
     - name: 加载自定义订阅源
       run: |
-        [ -e Files ] && cp -rf Files/ImmortalWrt/X86_64/* ImmortalWrt/
+        [ -e Files ] && [ -n "$(ls -A Files/ImmortalWrt/X86_64/ 2>/dev/null)" ] && cp -rf Files/ImmortalWrt/X86_64/* ImmortalWrt/ || echo "Files目录为空或不存在，跳过复制"
         chmod +x $Feeds_SH
         cd ImmortalWrt
         $GITHUB_WORKSPACE/$Feeds_SH || echo "文件 $Feeds_SH 不存在"
