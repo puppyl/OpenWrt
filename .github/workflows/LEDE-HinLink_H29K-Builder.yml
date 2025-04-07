@@ -20,7 +20,7 @@ env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
   FEEDS_CONF: feeds_config/LEDE/HinLink_H29K/feeds.conf.default
-  CONFIG_FILE: config/LEDE/HinLink_H29K/.config
+  CONFIG_FILE: Config/LEDE/HinLink_H29K/.config
   DIY_P1_SH: Script/LEDE/HinLink_H29K/diy-part1.sh
   DIY_P2_SH: Script/LEDE/HinLink_H29K/diy-part2.sh
   UPLOAD_BIN_DIR: false
@@ -77,8 +77,8 @@ jobs:
 
     - name: 加载自定义订阅源
       run: |
-        [ -e files ] && cp -rf files/LEDE/HinLink_H29K/* lede/
-        [ -e files ] && mkdir -p lede/package/feeds/modem && cp -rf files/Modem/quectel_cm_5G lede/package/feeds/modem
+        [ -e Files ] && cp -rf Files/LEDE/HinLink_H29K/* lede/
+        [ -e Files ] && mkdir -p lede/package/feeds/modem && cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
         [ -e $FEEDS_CONF ] && mv $FEEDS_CONF lede/feeds.conf.default
         chmod +x $DIY_P1_SH
         cd lede
