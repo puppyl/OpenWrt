@@ -82,9 +82,6 @@ jobs:
         cd lede
         chmod +x $Feeds_SH
         ./$Feeds_SH
-        chmod +x $Settings_SH
-        ./$Settings_SH
-      
 
     - name: 更新拉取源
       run: cd lede && ./scripts/feeds update -a
@@ -95,8 +92,14 @@ jobs:
     - name: 加载自定义配置
       run: |
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config || echo "文件 $CONFIG_FILE 不存在"
-        chmod +x "$Settings_SH" "$Packages_SH"
         cd lede || exit 1
+        chmod +x $Settings_SH
+        ./$Settings_SH
+        chmod +x $Packages_SH
+        ./$Packages_SH
+    
+
+    
     
 
     - name: 下载软件包
