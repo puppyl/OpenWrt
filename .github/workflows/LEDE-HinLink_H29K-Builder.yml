@@ -84,8 +84,6 @@ jobs:
         ./$Feeds_SH
         chmod +x $Settings_SH
         ./$Settings_SH
-        chmod +x $Packages_SH
-        ./$Packages_SH
       
 
     - name: 更新拉取源
