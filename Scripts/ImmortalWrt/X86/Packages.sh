@@ -85,6 +85,9 @@ UPDATE_VERSION() {
 }
 
 # 调用 示例
+
+# 应用过滤
+UPDATE_PACKAGE "OpenAppFilter" "destan19/OpenAppFilter" "master"
 # UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-24.10"
 # UPDATE_PACKAGE "passwall" "xiaorouji/openwrt-passwall" "main" "pkg"
 # UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
