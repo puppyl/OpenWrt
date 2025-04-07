@@ -21,8 +21,8 @@ env:
   REPO_BRANCH: master
   FEEDS_CONF: feeds_config/LEDE/HinLink_H29K/feeds.conf.default
   CONFIG_FILE: config/LEDE/HinLink_H29K/.config
-  DIY_P1_SH: DIY_Script/LEDE/HinLink_H29K/diy-part1.sh
-  DIY_P2_SH: DIY_Script/LEDE/HinLink_H29K/diy-part2.sh
+  DIY_P1_SH: Script/LEDE/HinLink_H29K/diy-part1.sh
+  DIY_P2_SH: Script/LEDE/HinLink_H29K/diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
