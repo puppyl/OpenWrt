@@ -86,15 +86,25 @@ UPDATE_VERSION() {
 
 # 调用 示例
 
-# 应用过滤
+# 应用过滤类
 UPDATE_PACKAGE "OpenAppFilter" "destan19/OpenAppFilter" "master"
-# UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-24.10"
-# UPDATE_PACKAGE "passwall" "xiaorouji/openwrt-passwall" "main" "pkg"
-# UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
-# UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5" "" "v2dat"
-# UPDATE_PACKAGE "qmodem" "FUjr/modem_feeds" "main"
-# UPDATE_PACKAGE "vnt" "lmq8267/luci-app-vnt" "main"
-# UPDATE_PACKAGE "adguardhome" "xiaoxiao29/luci-app-adguardhome" "master"
+
+# 主题/UI类
+UPDATE_PACKAGE "argon-config" "jerrykuku/luci-app-argon-config" "master"
+UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-24.10"
+
+# 网络工具类
+UPDATE_PACKAGE "lucky" "sirpdboy/luci-app-lucky" "main"
+UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5"
+UPDATE_PACKAGE "nps" "feifan1113/luci-app-nps" "master"
+
+# DNS/广告过滤类
+UPDATE_PACKAGE "adguardhome" "kenzok78/luci-app-adguardhome" "main"
+
+# 其他
+UPDATE_PACKAGE "passwall" "xiaorouji/openwrt-passwall" "main" "pkg"
+UPDATE_PACKAGE "luci-app-tailscale" "asvow/luci-app-tailscale" "main"
+
 # 更新软件包版本
 # UPDATE_VERSION "sing-box"
 # UPDATE_VERSION "tailscale"
