@@ -93,15 +93,9 @@ jobs:
       run: |
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config || echo "文件 $CONFIG_FILE 不存在"
         cd lede || exit 1
-        chmod +x $Settings_SH
-        ./$Settings_SH
-        chmod +x $Packages_SH
-        ./$Packages_SH
-    
-
-    
-    
-
+        [ -e "$Settings_SH" ] && chmod +x "$Settings_SH" && bash "$Settings_SH" || echo "文件 $Settings_SH 不存在"
+        [ -e "$Packages_SH" ] && chmod +x "$Packages_SH" && bash "$Packages_SH" || echo "文件 $Packages_SH 不存在"
+         
     - name: 下载软件包
       id: package
       run: |
