@@ -19,7 +19,7 @@ on:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  FEEDS_CONF: feeds_config/LEDE/HinLink_H29K/feeds.conf.default
+  FEEDS_CONF: Feeds/LEDE/HinLink_H29K/feeds.conf.default
   CONFIG_FILE: Config/LEDE/HinLink_H29K/.config
   DIY_P1_SH: Script/LEDE/HinLink_H29K/diy-part1.sh
   DIY_P2_SH: Script/LEDE/HinLink_H29K/diy-part2.sh
