@@ -21,7 +21,7 @@ sed -i 's/\/bin\/ash/\/bin\/bash/g' package/base-files/files/etc/passwd
 sed -i 's#\"title\": \"UPnP IGD \& PCP/NAT-PMP\"#\"title\": \"UPnP\"#g' feeds/luci/applications/luci-app-upnp/root/usr/share/luci/menu.d/luci-app-upnp.json
 
 # 优化socat中英翻译
-sed -i 's/仅IPv6/仅 IPv6/g' package/feeds/luci/luci-app-socat/po/zh_Hans/socat.po
+# sed -i 's/仅IPv6/仅 IPv6/g' package/feeds/luci/luci-app-socat/po/zh_Hans/socat.po
 
 ## samba设置
 # enable multi-channel
@@ -81,26 +81,26 @@ git_clone https://github.com/jerrykuku/luci-app-argon-config
 # 获取当天的星期几 (0=星期日, 1=星期一,...,6=星期六)
 bg_file="bg$((($(date +%w) + 6) % 7 + 1)).jpg"
 # argon登录页面美化
-ARGON_IMG_FILE="feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg"
-if [ -f "$ARGON_IMG_FILE" ]; then
-    # 替换Argon主题内建壁纸
-    cp -f "$GITHUB_WORKSPACE/personal/$bg_file" "$ARGON_IMG_FILE"
+# ARGON_IMG_FILE="feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg"
+# if [ -f "$ARGON_IMG_FILE" ]; then
+#     # 替换Argon主题内建壁纸
+#     cp -f "$GITHUB_WORKSPACE/personal/$bg_file" "$ARGON_IMG_FILE"
 
-    echo "$bg_file argon wallpaper has been replaced!"
-fi
-ARGON_CONFIG_FILE="feeds/luci/applications/luci-app-argon-config/root/etc/config/argon"
-if [ -f "$ARGON_CONFIG_FILE" ]; then
-    # 设置Argon主题的登录页面壁纸为内建
-    sed -i "s/option online_wallpaper 'bing'/option online_wallpaper 'none'/" $ARGON_CONFIG_FILE
-    # 设置Argon主题的登录表单模糊度
-    sed -i "s/option blur '[0-9]*'/option blur '0'/" $ARGON_CONFIG_FILE
-    sed -i "s/option blur_dark '[0-9]*'/option blur_dark '0'/" $ARGON_CONFIG_FILE
-    # 设置Argon主题颜色
-    sed -i "s/option primary '#[0-9a-fA-F]\{6\}'/option primary '#FF8C00'/" $ARGON_CONFIG_FILE
-    sed -i "s/option dark_primary '#[0-9a-fA-F]\{6\}'/option dark_primary '#9370DB'/" $ARGON_CONFIG_FILE
+#     echo "$bg_file argon wallpaper has been replaced!"
+# fi
+# ARGON_CONFIG_FILE="feeds/luci/applications/luci-app-argon-config/root/etc/config/argon"
+# if [ -f "$ARGON_CONFIG_FILE" ]; then
+#     # 设置Argon主题的登录页面壁纸为内建
+#     sed -i "s/option online_wallpaper 'bing'/option online_wallpaper 'none'/" $ARGON_CONFIG_FILE
+#     # 设置Argon主题的登录表单模糊度
+#     sed -i "s/option blur '[0-9]*'/option blur '0'/" $ARGON_CONFIG_FILE
+#     sed -i "s/option blur_dark '[0-9]*'/option blur_dark '0'/" $ARGON_CONFIG_FILE
+#     # 设置Argon主题颜色
+#     sed -i "s/option primary '#[0-9a-fA-F]\{6\}'/option primary '#FF8C00'/" $ARGON_CONFIG_FILE
+#     sed -i "s/option dark_primary '#[0-9a-fA-F]\{6\}'/option dark_primary '#9370DB'/" $ARGON_CONFIG_FILE
 
-    echo "argon theme has been customized!"
-fi
+#     echo "argon theme has been customized!"
+# fi
 
 # 修改主题多余版本信息
 sed -i 's|<a class="luci-link" href="https://github.com/openwrt/luci"|<a|g' feeds/luci/themes/luci-theme-argon/luasrc/view/themes/argon/footer.htm
@@ -206,5 +206,12 @@ for e in $(ls -d $destination_dir/luci-*/po feeds/luci/applications/luci-*/po); 
     fi
 done
 
+# 固件更新地址
+sed -i '/CPU usage/a\                <tr><td width="33%"><%:Compile update%></td><td><a target="_blank" href="https://github.com/aaaol/OpenWrt/releases">👆查看</a></td></tr>'  package/lean/autocore/files/x86/index.htm
+cat >>feeds/luci/modules/luci-base/po/zh-cn/base.po<<- EOF
+
+msgid "Compile update"
+msgstr "固件地址"
+EOF
 echo "========================="
 echo " DIY2 配置完成……"
