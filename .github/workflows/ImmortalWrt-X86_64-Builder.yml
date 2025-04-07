@@ -7,7 +7,7 @@ on:
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   REPO_BRANCH: master
-  CONFIG_FILE: Config/ImmortalWrt/X86/.config
+  CONFIG_FILE: Config/ImmortalWrt/X86/.config 
   Feeds_SH: Scripts/ImmortalWrt/X86/Feeds.sh
   Settings_SH: Scripts/ImmortalWrt/X86/Settings.sh
   Packages_SH: Scripts/ImmortalWrt/X86/Packages.sh
@@ -18,7 +18,7 @@ env:
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
 
     steps:
     - name: 校验
