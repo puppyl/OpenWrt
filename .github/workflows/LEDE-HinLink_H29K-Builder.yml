@@ -80,8 +80,7 @@ jobs:
         [ -e Files ] && cp -rf Files/LEDE/HinLink_H29K/* lede/
         [ -e Files ] && mkdir -p lede/package/feeds/modem && cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
         cd lede
-        chmod +x $Feeds_SH
-        ./$Feeds_SH
+        [ -e "$Settings_SH" ] && chmod +x "$Feeds_SH" && bash "$Feeds_SH" || echo "文件 $Feeds_SH 不存在"
 
     - name: 更新拉取源
       run: cd lede && ./scripts/feeds update -a
@@ -95,7 +94,7 @@ jobs:
         cd lede || exit 1
         [ -e "$Settings_SH" ] && chmod +x "$Settings_SH" && bash "$Settings_SH" || echo "文件 $Settings_SH 不存在"
         [ -e "$Packages_SH" ] && chmod +x "$Packages_SH" && bash "$Packages_SH" || echo "文件 $Packages_SH 不存在"
-         
+
     - name: 下载软件包
       id: package
       run: |
