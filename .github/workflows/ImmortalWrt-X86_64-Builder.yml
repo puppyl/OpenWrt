@@ -1,4 +1,4 @@
-name: ImmortalWrt-X86_64-Builder
+name: ImmortalWrt-X86-Builder
 
 on:
   repository_dispatch:
@@ -7,10 +7,10 @@ on:
 env:
   REPO_URL: https://github.com/immortalwrt/immortalwrt
   REPO_BRANCH: master
-  CONFIG_FILE: Config/ImmortalWrt/X86_64/.config
-  Feeds_SH: Scripts/ImmortalWrt/X86_64/Feeds.sh
-  Settings_SH: Scripts/ImmortalWrt/X86_64/Settings.sh
-  Packages_SH: Scripts/ImmortalWrt/X86_64/Packages.sh
+  CONFIG_FILE: Config/ImmortalWrt/X86/.config
+  Feeds_SH: Scripts/ImmortalWrt/X86/Feeds.sh
+  Settings_SH: Scripts/ImmortalWrt/X86/Settings.sh
+  Packages_SH: Scripts/ImmortalWrt/X86/Packages.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
@@ -65,7 +65,7 @@ jobs:
 
     - name: 加载自定义订阅源
       run: |
-        [ -e Files ] && [ -n "$(ls -A Files/ImmortalWrt/X86_64/ 2>/dev/null)" ] && cp -rf Files/ImmortalWrt/X86_64/* ImmortalWrt/ || echo "Files目录为空或不存在，跳过复制"
+        [ -e Files ] && [ -n "$(ls -A Files/ImmortalWrt/X86/ 2>/dev/null)" ] && cp -rf Files/ImmortalWrt/X86/* ImmortalWrt/ || echo "Files目录为空或不存在，跳过复制"
         chmod +x $Feeds_SH
         cd ImmortalWrt
         $GITHUB_WORKSPACE/$Feeds_SH || echo "文件 $Feeds_SH 不存在"
@@ -135,7 +135,7 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=ImmortalWrt-X86_64-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
+        echo "release_tag=ImmortalWrt-X86-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
         touch release.txt
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
