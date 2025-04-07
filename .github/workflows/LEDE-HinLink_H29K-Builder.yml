@@ -81,7 +81,7 @@ jobs:
         [ -e Files ] && mkdir -p lede/package/feeds/modem && cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
         cd lede
         chmod +x $GITHUB_WORKSPACE/$Feeds_SH && $GITHUB_WORKSPACE/$Feeds_SH
-        chmod +x $GITHUB_WORKSPACE/$Settings_SH && $GITHUB_WORKSPACE/$Packages_SH
+        $GITHUB_WORKSPACE/$Settings_SH && $GITHUB_WORKSPACE/$Packages_SH
 
     - name: 更新拉取源
       run: cd lede && ./scripts/feeds update -a
