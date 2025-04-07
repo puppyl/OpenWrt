@@ -19,10 +19,10 @@ on:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  FEEDS_CONF: Feeds/LEDE/HinLink_H29K/feeds.conf.default
   CONFIG_FILE: Config/LEDE/HinLink_H29K/.config
-  DIY_P1_SH: Script/LEDE/HinLink_H29K/diy-part1.sh
-  DIY_P2_SH: Script/LEDE/HinLink_H29K/diy-part2.sh
+  DIY_P1_SH: Scripts/LEDE/HinLink_H29K/diy-part1.sh
+  DIY_P2_SH: Scripts/LEDE/HinLink_H29K/diy-part2.sh
+  Packages_SH: Scripts/LEDE/HinLink_H29K/diy-part2.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
@@ -78,9 +78,7 @@ jobs:
     - name: 加载自定义订阅源
       run: |
         [ -e Files ] && cp -rf Files/LEDE/HinLink_H29K/* lede/
-        [ -e Files ] && mkdir -p lede/package/feeds/modem && cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
-        [ -e $FEEDS_CONF ] && mv $FEEDS_CONF lede/feeds.conf.default
-        chmod +x $DIY_P1_SH
+        [ -e Files ] && mkdir -p lede/package/feeds/modem && cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem        chmod +x $DIY_P1_SH
         cd lede
         $GITHUB_WORKSPACE/$DIY_P1_SH
 
@@ -92,10 +90,11 @@ jobs:
 
     - name: 加载自定义配置
       run: |
-        [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config
-        chmod +x "$DIY_P2_SH"
-        cd lede
-        "$GITHUB_WORKSPACE/$DIY_P2_SH"
+        [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config || echo "文件 $CONFIG_FILE 不存在"
+        chmod +x "$DIY_P2_SH" "$Packages_SH"
+        cd lede || exit 1
+        $GITHUB_WORKSPACE/$DIY_P2_SH && $GITHUB_WORKSPACE/$Packages_SH
+    
 
     - name: 下载软件包
       id: package
