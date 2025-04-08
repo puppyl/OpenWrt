@@ -93,7 +93,8 @@ jobs:
       run: |
         [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config || echo "文件 $CONFIG_FILE 不存在"
         cd lede || exit 1
-        chmod +x $Settings_SH && chmod +x $Packages_SH
+        chmod +x $Settings_SH
+        chmod +x $Packages_SH
         $GITHUB_WORKSPACE/$Settings_SH || echo "文件 $Settings_SH 不存在"
         $GITHUB_WORKSPACE/$Packages_SH || echo "文件 $Packages_SH 不存在"
 
