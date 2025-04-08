@@ -154,7 +154,7 @@ jobs:
 
         👤 用户名: root
 
-        🔒 密码: password
+        🔒 密码: password" >> release.txt
         echo "status=success" >> ${GITHUB_OUTPUT}
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
