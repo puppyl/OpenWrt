@@ -96,7 +96,7 @@ UPDATE_PACKAGE "argon" "sbwml/luci-theme-argon" "openwrt-24.10"
 # 网络工具类
 UPDATE_PACKAGE "lucky" "sirpdboy/luci-app-lucky" "main"
 UPDATE_PACKAGE "mosdns" "sbwml/luci-app-mosdns" "v5"
-UPDATE_PACKAGE "nps" "feifan1113/luci-app-nps" "master"
+# UPDATE_PACKAGE "nps" "feifan1113/luci-app-nps" "master"
 
 # DNS/广告过滤类
 UPDATE_PACKAGE "adguardhome" "kenzok78/luci-app-adguardhome" "main"
