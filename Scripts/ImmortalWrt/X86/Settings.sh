@@ -79,7 +79,7 @@ git_clone https://github.com/jerrykuku/luci-app-argon-config
 # 更改argon主题背景
 # cp -f $GITHUB_WORKSPACE/personal/bg1.jpg feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg
 # 获取当天的星期几 (0=星期日, 1=星期一,...,6=星期六)
-bg_file="bg$((($(date +%w) + 6) % 7 + 1)).jpg"
+# bg_file="bg$((($(date +%w) + 6) % 7 + 1)).jpg"
 # argon登录页面美化
 # ARGON_IMG_FILE="feeds/luci/themes/luci-theme-argon/htdocs/luci-static/argon/img/bg1.jpg"
 # if [ -f "$ARGON_IMG_FILE" ]; then
@@ -118,12 +118,12 @@ else
    echo -e "\e[41m当前写入的编译时间:\e[0m \e[33m$(grep 'OPENWRT_RELEASE' package/base-files/files/usr/lib/os-release)\e[0m"
 fi
 
-# 修改欢迎banner
-cp -f $GITHUB_WORKSPACE/diy_script/immo_diy/x86/99-default-settings package/emortal/default-settings/files/99-default-settings
-# cp -f $GITHUB_WORKSPACE/personal/banner-immo package/base-files/files/etc/banner
-# wget -O ./package/base-files/files/etc/banner https://raw.githubusercontent.com/Jejz168/OpenWrt/main/personal/banner
-sed -i "/%D/a \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [31m By @aaaol build $(TZ=UTC-8 date '+%Y.%m.%d') [0m" package/base-files/files/etc/banner
-cat package/base-files/files/etc/banner
+# # 修改欢迎banner
+# cp -f $GITHUB_WORKSPACE/diy_script/immo_diy/x86/99-default-settings package/emortal/default-settings/files/99-default-settings
+# # cp -f $GITHUB_WORKSPACE/personal/banner-immo package/base-files/files/etc/banner
+# # wget -O ./package/base-files/files/etc/banner https://raw.githubusercontent.com/Jejz168/OpenWrt/main/personal/banner
+# sed -i "/%D/a \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ [31m By @aaaol build $(TZ=UTC-8 date '+%Y.%m.%d') [0m" package/base-files/files/etc/banner
+# cat package/base-files/files/etc/banner
 
 # 补充 firewall4 luci 中文翻译
 cat >> "feeds/luci/applications/luci-app-firewall/po/zh_Hans/firewall.po" <<-EOF

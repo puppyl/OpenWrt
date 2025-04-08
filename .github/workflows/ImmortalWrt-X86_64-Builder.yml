@@ -71,7 +71,7 @@ jobs:
         [ -e Files ] && [ -n "$(ls -A Files/ImmortalWrt/X86/ 2>/dev/null)" ] && cp -rf Files/ImmortalWrt/X86/* ImmortalWrt/ || echo "Files目录为空或不存在，跳过复制"
         chmod +x $Feeds_SH
         cd ImmortalWrt
-        $GITHUB_WORKSPACE/$Feeds_SH || echo "文件 $Feeds_SH 不存在"
+        bash $GITHUB_WORKSPACE/$Feeds_SH || echo "文件 $Feeds_SH 不存在"
 
     - name: 更新拉取源
       run: cd ImmortalWrt && ./scripts/feeds update -a
