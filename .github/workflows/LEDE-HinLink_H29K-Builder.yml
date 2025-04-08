@@ -78,7 +78,8 @@ jobs:
     - name: 加载自定义订阅源
       run: |
         [ -e Files ] && cp -rf Files/LEDE/HinLink_H29K/* lede/
-        [ -e Files ] && mkdir -p lede/package/feeds/modem && cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
+        mkdir -p lede/package/feeds/modem
+        cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
         chmod +x $Feeds_SH
         cd lede
         $GITHUB_WORKSPACE/$Feeds_SH || echo "文件 $Feeds_SH 不存在"
