@@ -82,7 +82,7 @@ jobs:
         cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
         chmod +x $Feeds_SH
         cd lede
-        $GITHUB_WORKSPACE/$Feeds_SH || echo "文件 $Feeds_SH 不存在"
+        $GITHUB_WORKSPACE/$Feeds_SH
 
     - name: 更新拉取源
       run: cd lede && ./scripts/feeds update -a
@@ -92,12 +92,12 @@ jobs:
 
     - name: 加载自定义配置
       run: |
-        [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config || echo "文件 $CONFIG_FILE 不存在"
+        [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" lede/.config
         chmod +x $Settings_SH
         chmod +x $Packages_SH
-        cd lede || exit 1
-        $GITHUB_WORKSPACE/$Settings_SH || echo "文件 $Settings_SH 不存在"
-        $GITHUB_WORKSPACE/$Packages_SH || echo "文件 $Packages_SH 不存在"
+        cd lede
+        $GITHUB_WORKSPACE/$Settings_SH
+        $GITHUB_WORKSPACE/$Packages_SH
 
     - name: 下载软件包
       id: package
