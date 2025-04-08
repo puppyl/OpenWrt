@@ -85,8 +85,8 @@ jobs:
         chmod +x $Settings_SH 
         chmod +x $Packages_SH
         cd ImmortalWrt || exit 1
-        $GITHUB_WORKSPACE/$Settings_SH || echo "文件 $Settings_SH 不存在"
-        $GITHUB_WORKSPACE/$Packages_SH || echo "文件 $Packages_SH 不存在"
+        bash $GITHUB_WORKSPACE/$Settings_SH || echo "文件 $Settings_SH 不存在"
+#       bash $GITHUB_WORKSPACE/$Packages_SH || echo "文件 $Packages_SH 不存在"
 
     - name: 下载软件包
       id: package
