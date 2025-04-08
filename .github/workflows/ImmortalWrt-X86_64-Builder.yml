@@ -21,25 +21,8 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: 校验
+    - name: 准备完成
       uses: actions/checkout@main
-
-    - name: 初始化环境
-      run: |
-        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL &&
-        sudo docker image prune -af &&
-        sudo -E apt-get -qq update &&
-        curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh | sudo -E bash - &&
-        sudo -E apt-get -qq autoremove --purge &&
-        sudo -E apt-get -qq clean &&
-        sudo timedatectl set-timezone "Asia/Shanghai" &&
-        sudo mkdir -p /workdir && sudo chown $USER:$GROUPS /workdir
-      shell: bash
-      env:
-        DEBIAN_FRONTEND: noninteractive
-        TZ: Asia/Shanghai
-    
-    
 
     - name: 检查服务器配置
       run: |
@@ -58,6 +41,23 @@ jobs:
         echo "硬盘详情："
         echo "系统空间        类型   总数  已用  可用  使用率"
         df -Th
+
+    - name: 初始化编译环境
+      run: |
+        echo "------------------------------- 更新并安装依赖 -------------------------------"
+        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL &&
+        sudo docker image prune -af &&
+        sudo -E apt-get -qq update &&
+        curl -s https://build-scripts.immortalwrt.org/init_build_environment.sh | sudo -E bash - &&
+        sudo -E apt-get -qq autoremove --purge &&
+        sudo -E apt-get -qq clean &&
+        echo "------------------------------- 设置工作目录及时区 -------------------------------"
+        sudo timedatectl set-timezone "Asia/Shanghai" &&
+        sudo mkdir -p /workdir && sudo chown $USER:$GROUPS /workdir
+      shell: bash
+      env:
+        DEBIAN_FRONTEND: noninteractive
+        TZ: Asia/Shanghai
 
     - name: 克隆源代码
       working-directory: /workdir
@@ -141,6 +141,21 @@ jobs:
       run: |
         echo "release_tag=ImmortalWrt-X86-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
         touch release.txt
+                echo "
+        💻 架构: ${{ matrix.ARCHITECTURE }}
+
+        📂 源码: ${{ env.REPO_URL }}
+
+        🌳 分支: ${{ matrix.REPO_BRANCH }}
+
+        ⏱️ 编译时间: $(date +"%Y年%m月%d日%H时%M分")
+
+        🌐 管理地址: 192.168.100.3
+
+        👤 用户名: root
+
+        🔒 密码: password
+        echo "status=success" >> ${GITHUB_OUTPUT}
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
 
