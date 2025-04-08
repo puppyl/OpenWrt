@@ -82,7 +82,7 @@ jobs:
         cp -rf Files/Modem/quectel_cm_5G lede/package/feeds/modem
         chmod +x $Feeds_SH
         cd lede
-        $GITHUB_WORKSPACE/$Feeds_SH
+        bash $GITHUB_WORKSPACE/$Feeds_SH
 
     - name: 更新拉取源
       run: cd lede && ./scripts/feeds update -a
@@ -96,8 +96,8 @@ jobs:
         chmod +x $Settings_SH
         chmod +x $Packages_SH
         cd lede
-        $GITHUB_WORKSPACE/$Settings_SH
-        $GITHUB_WORKSPACE/$Packages_SH
+        bash $GITHUB_WORKSPACE/$Settings_SH
+#       bash $GITHUB_WORKSPACE/$Packages_SH
 
     - name: 下载软件包
       id: package
