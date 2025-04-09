@@ -167,7 +167,7 @@ jobs:
 
         📒 WIFI：H29K
 
-        📒 密码：1234567890" >> release.txt
+        📒 密码：1234567890
         echo "status=success" >> ${GITHUB_OUTPUT}
         [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
         echo "status=success" >> $GITHUB_OUTPUT
