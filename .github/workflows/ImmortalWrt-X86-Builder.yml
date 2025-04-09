@@ -1,181 +1,303 @@
 name: ImmortalWrt-X86-Builder
 
 on:
+  # 两种触发方式：
+  # 1. repository_dispatch - 允许通过API手动触发
+  # 2. workflow_dispatch - 允许在GitHub网页界面上手动触发
   repository_dispatch:
   workflow_dispatch:
 
 env:
-  REPO_URL: https://github.com/immortalwrt/immortalwrt
-  REPO_BRANCH: master
-  CONFIG_FILE: Config/ImmortalWrt/X86_64.config
-  Feeds_SH: Scripts/ImmortalWrt/X86_64/Feeds.sh
-  Settings_SH: Scripts/ImmortalWrt/X86_64/Settings.sh
-  Packages_SH: Scripts/ImmortalWrt/X86_64/Packages.sh
-  UPLOAD_BIN_DIR: false
-  UPLOAD_FIRMWARE: true
-  UPLOAD_RELEASE: true
-  TZ: Asia/Shanghai
+  # 源码仓库配置
+  REPO_URL: https://github.com/immortalwrt/immortalwrt  # ImmortalWrt官方仓库地址
+  REPO_BRANCH: master                                   # 使用的代码分支
+  
+  # 配置文件路径
+  CONFIG_FILE: Config/ImmortalWrt/X86_64.config         # 主配置文件路径
+  Feeds_SH: Scripts/ImmortalWrt/X86_64/Feeds.sh         # 订阅源脚本路径
+  Settings_SH: Scripts/ImmortalWrt/X86_64/Settings.sh   # 设置脚本路径
+  Packages_SH: Scripts/ImmortalWrt/X86_64/Packages.sh   # 软件包脚本路径
+  
+  # 构建输出控制
+  UPLOAD_BIN_DIR: false     # 是否上传bin目录(包含构建中间文件)
+  UPLOAD_FIRMWARE: true     # 是否上传最终固件
+  UPLOAD_RELEASE: true      # 是否创建GitHub发布
+  
+  TZ: Asia/Shanghai         # 设置时区为上海时间
 
 jobs:
   build:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-22.04   # 使用Ubuntu 22.04系统作为构建环境
 
     steps:
-    - name: 准备完成
-      uses: actions/checkout@main
+    # === 1. 准备阶段 ===
+    - name: 检出仓库代码
+      uses: actions/checkout@v4
+      # 备注：这一步使用官方checkout动作获取当前仓库代码
 
+    # === 2. 系统检查 ===
     - name: 检查服务器配置
       run: |
-        echo "警告⚠"
-        echo "分配的服务器性能有限，若选择的插件过多，务必注意CPU性能！"
-        echo -e "已知CPU型号(降序): 7763，8370C，8272CL，8171M，E5-2673 \n"
-        echo -e "-------------- ------------CPU信息------------------------------------------"
-        echo "CPU物理数量:$(cat /proc/cpuinfo| grep "physical id"| sort| uniq| wc -l)"
-        echo "CPU线程数量: $(nproc)"
-        echo -e "CPU核心及版本信息：$(cat /proc/cpuinfo | grep name | cut -f2 -d: | uniq -c) \n"
-        echo "-------------------------------内存信息-------------------------------------------"
-        echo "已安装内存详细信息："
-        echo -e "$(sudo lshw -short -C memory | grep GiB) \n"
-        echo "-----------------------------硬盘信息---------------------------------------------"
-        echo -e  "硬盘数量：$(ls /dev/sd* | grep -v [1-9] | wc -l)"
-        echo "硬盘详情："
-        echo "系统空间        类型   总数  已用  可用  使用率"
-        df -Th
+        echo "⚠️ 性能警告：服务器资源有限，过多插件可能导致编译失败"
+        echo "已知CPU性能降序：7763 > 8370C > 8272CL > 8171M > E5-2673"
+        
+        # 显示CPU信息
+        echo -e "\n=== CPU信息 ==="
+        echo "物理核心数: $(grep -c '^processor' /proc/cpuinfo)"
+        echo "逻辑线程数: $(nproc)"
+        echo "CPU型号: $(grep 'model name' /proc/cpuinfo | head -1 | cut -d: -f2 | sed 's/^[ \t]*//')"
+        
+        # 显示内存信息
+        echo -e "\n=== 内存信息 ===" 
+        free -h
+        
+        # 显示磁盘信息
+        echo -e "\n=== 磁盘信息 ==="
+        df -hT
+        # 备注：此步骤帮助诊断构建环境资源情况
 
+    # === 3. 环境初始化 ===
     - name: 初始化编译环境
       run: |
-        echo "------------------------------- 更新并安装依赖 -------------------------------"
-        sudo rm -rf /etc/apt/sources.list.d/* /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL &&
-        sudo docker image prune -af &&
-        sudo -E apt-get -qq update &&
-        curl -s https://build-scripts.lede-project.org/init_build_environment.sh | sudo -E bash - &&
-        sudo -E apt-get -qq autoremove --purge &&
-        sudo -E apt-get -qq clean &&
-        echo "------------------------------- 设置工作目录及时区 -------------------------------"
-        sudo timedatectl set-timezone "Asia/Shanghai" &&
+        echo ">>> 正在清理系统缓存..."
+        sudo rm -rf /etc/apt/sources.list.d/* \
+                   /usr/share/dotnet \
+                   /usr/local/lib/android \
+                   /opt/ghc \
+                   /opt/hostedtoolcache/CodeQL
+        
+        echo ">>> 正在清理Docker映像..."
+        sudo docker image prune -af
+        
+        echo ">>> 正在更新软件包..."
+        sudo apt-get -qq update
+        
+        echo ">>> 正在安装编译依赖..."
+        curl -s https://build-scripts.lede-project.org/init_build_environment.sh | sudo -E bash -
+        
+        echo ">>> 正在执行清理..."
+        sudo apt-get -qq autoremove --purge
+        sudo apt-get -qq clean
+        
+        echo ">>> 配置工作环境..."
         sudo mkdir -p /workdir && sudo chown $USER:$GROUPS /workdir
-      shell: bash
+        sudo timedatectl set-timezone "$TZ"
       env:
-        DEBIAN_FRONTEND: noninteractive
-        TZ: Asia/Shanghai
+        DEBIAN_FRONTEND: noninteractive  # 避免安装过程中的交互提示
+        TZ: ${{ env.TZ }}                # 复用全局时区设置
+      # 备注：Ubuntu环境下安装OpenWrt编译所需的所有依赖
 
-    - name: 克隆源代码
-      working-directory: /workdir
+    # === 4. 源码获取 ===
+    - name: 克隆ImmortalWrt源码
+      working-directory: /workdir  # 指定工作目录
       run: |
+        echo "当前磁盘使用情况："
         df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH ImmortalWrt
+        
+        echo ">>> 正在克隆源码..."
+        git clone --depth 1 $REPO_URL -b $REPO_BRANCH ImmortalWrt
+        
+        echo ">>> 创建符号链接..."
         ln -sf /workdir/ImmortalWrt $GITHUB_WORKSPACE/ImmortalWrt
+      # 备注：--depth=1只克隆最新提交，减少下载量
 
+    # === 5. 自定义配置 ===
     - name: 加载自定义订阅源
       run: |
-        [ -e Files ] && [ -n "$(ls -A Files/ImmortalWrt/X86_64/ 2>/dev/null)" ] && cp -rf Files/ImmortalWrt/X86_64/* ImmortalWrt/ || echo "Files目录为空或不存在，跳过复制"
-        chmod +x $Feeds_SH
-        cd ImmortalWrt
-        bash $GITHUB_WORKSPACE/$Feeds_SH || echo "文件 $Feeds_SH 不存在"
+        # 复制自定义文件到源码目录
+        if [ -d "Files/ImmortalWrt/X86_64" ]; then
+          echo ">>> 检测到自定义文件，正在复制..."
+          cp -rf Files/ImmortalWrt/X86_64/* ImmortalWrt/
+        else
+          echo "!!! 未找到自定义文件目录"
+        fi
+        
+        # 执行订阅源脚本
+        if [ -f "$Feeds_SH" ]; then
+          echo ">>> 正在执行订阅源脚本..."
+          chmod +x "$Feeds_SH"
+          bash "$GITHUB_WORKSPACE/$Feeds_SH"
+        else
+          echo "!!! 订阅源脚本不存在：$Feeds_SH"
+        fi
+      # 备注：允许用户自定义软件源链接
 
-    - name: 更新拉取源
-      run: cd ImmortalWrt && ./scripts/feeds update -a
-
-    - name: 安装拉取源
-      run: cd ImmortalWrt && ./scripts/feeds install -a
-
-    - name: 加载自定义配置
+    # === 6. 源码准备 ===
+    - name: 更新软件源
       run: |
-        [ -e "$CONFIG_FILE" ] && mv "$CONFIG_FILE" ImmortalWrt/.config || echo "文件 $CONFIG_FILE 不存在"
-        chmod +x $Settings_SH 
-        chmod +x $Packages_SH
-        cd ImmortalWrt || exit 1
-        bash $GITHUB_WORKSPACE/$Settings_SH || echo "文件 $Settings_SH 不存在"
-#       bash $GITHUB_WORKSPACE/$Packages_SH || echo "文件 $Packages_SH 不存在"
+        cd ImmortalWrt
+        ./scripts/feeds update -a
+      # 备注：更新所有可用的软件包源
 
+    - name: 安装软件包
+      run: |
+        cd ImmortalWrt
+        ./scripts/feeds install -a
+      # 备注：安装所有已配置的软件包
+
+    # === 7. 配置编译选项 ===
+    - name: 应用自定义配置
+      run: |
+        # 应用主配置文件
+        if [ -f "$CONFIG_FILE" ]; then
+          echo ">>> 正在应用主配置..."
+          mv "$CONFIG_FILE" ImmortalWrt/.config
+        else
+          echo "!!! 主配置文件不存在：$CONFIG_FILE"
+        fi
+        
+        # 应用设置脚本
+        if [ -f "$Settings_SH" ]; then
+          echo ">>> 正在执行设置脚本..."
+          chmod +x "$Settings_SH"
+          cd ImmortalWrt && bash "$GITHUB_WORKSPACE/$Settings_SH"
+        else
+          echo "!!! 设置脚本不存在：$Settings_SH"
+        fi
+      # 备注：此步骤会决定最终固件包含哪些功能和驱动
+
+    # === 8. 依赖下载 ===
     - name: 下载软件包
       id: package
       run: |
         cd ImmortalWrt
+        
+        echo ">>> 生成默认配置..."
         make defconfig
-        make download -j8
-        find dl -size -1024c -exec ls -l {} \;
-        find dl -size -1024c -exec rm -f {} \;
+        
+        echo ">>> 并行下载依赖包(8线程)..."
+        make download -j8 || {
+          echo "!!! 首次下载失败，重试单线程下载..."
+          make download -j1
+        }
+        
+        echo ">>> 清理不完整下载..."
+        find dl -size -1024c -delete
+      # 备注：提前下载所有依赖包，避免编译过程中断
 
+    # === 9. 编译过程 ===
     - name: 编译固件
       id: compile
       run: |
         cd ImmortalWrt
-        echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
+        
+        echo ">>> 开始编译(线程数: $(nproc))..."
+        make -j$(nproc) || {
+          echo "!!! 并行编译失败，尝试单线程编译..."
+          make -j1 || {
+            echo "!!! 单线程编译失败，启用详细模式..."
+            make -j1 V=s
+          }
+        }
+        
+        # 记录编译状态
         echo "status=success" >> $GITHUB_OUTPUT
-        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+        
+        # 提取设备名称
+        grep '^CONFIG_TARGET.*DEVICE.*=y' .config | \
+          sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
+        
+        # 设置环境变量
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
         echo "FILE_DATE=_$(date +"%Y%m%d%H%M")" >> $GITHUB_ENV
+      # 备注：采用三级降级编译策略提高成功率
 
+    # === 10. 空间检查 ===
     - name: 检查空间使用情况
-      if: (!cancelled())
-      run: df -hT
+      if: (!cancelled())  # 仅在未被取消时执行
+      run: |
+        echo ">>> 最终磁盘使用情况："
+        df -hT
+      # 备注：帮助诊断是否需要增加缓存空间
 
-    - name: 上传bin目录
-      uses: actions/upload-artifact@main
+    # === 11. 构建产物处理 ===
+    - name: 上传bin目录(可选)
+      uses: actions/upload-artifact@v4
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
         name: ImmortalWrt_bin${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ImmortalWrt/bin
+        retention-days: 3  # 自动清理旧文件
+      # 备注：上传包含所有中间文件的完整bin目录
 
-    - name: 整理文件
+    - name: 整理固件文件
       id: organize
       if: env.UPLOAD_FIRMWARE == 'true' && !cancelled()
       run: |
         cd ImmortalWrt/bin/targets/*/*
+        
+        echo ">>> 正在清理非必要文件..."
         rm -rf packages *.buildinfo *.json *.manifest
+        
         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
         echo "status=success" >> $GITHUB_OUTPUT
+      # 备注：移除调试文件，减少上传体积
 
-    - name: 上传固件目录
-      uses: actions/upload-artifact@main
+    - name: 上传固件产物
+      uses: actions/upload-artifact@v4
       if: steps.organize.outputs.status == 'success' && !cancelled()
       with:
         name: ImmortalWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
+        retention-days: 7
+      # 备注：上传精简后的固件文件
 
-    - name: 生成发布标签
+    # === 12. 发布管理 ===
+    - name: 准备发布说明
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=ImmortalWrt-X86_64 - $(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
-        touch release.txt
-        echo "
-        📂 源码: ${{ env.REPO_URL }}
-
-        ⏱️ 编译时间: $(date +"%Y年%m月%d日%H时%M分")
-
-        🌐 管理地址: 192.168.100.3
-
-        👤 用户名: root
-
-        🔒 密码: password
-        echo "status=success" >> ${GITHUB_OUTPUT}
-        [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
+        # 生成版本标签
+        echo "release_tag=ImmortalWrt-X86_64-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
+        
+        # 生成发布说明
+        cat <<EOF > release.txt
+        🚀 ImmortalWrt 自动构建结果
+        
+        📅 编译时间: $(date +"%Y-%m-%d %H:%M:%S %Z")
+        💻 设备型号: ${{ env.DEVICE_NAME }}
+        
+        🔗 源码仓库: $REPO_URL
+        🌱 代码分支: $REPO_BRANCH
+        
+        🔐 默认凭据:
+          IP: 192.168.1.1
+          用户名: root
+          密码: password
+        
+        📌 提示: 首次启动建议执行固件重置
+        EOF
+        
         echo "status=success" >> $GITHUB_OUTPUT
+      # 备注：生成格式化的发布说明
 
-    - name: 上传固件以发布
-      uses: softprops/action-gh-release@master
+    - name: 发布固件
+      uses: softprops/action-gh-release@v2
       if: steps.tag.outputs.status == 'success' && !cancelled()
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # 自动使用GitHub令牌
       with:
         tag_name: ${{ steps.tag.outputs.release_tag }}
         body_path: release.txt
         files: ${{ env.FIRMWARE }}/*
+        draft: false
+        prerelease: false
+      # 备注：创建正式的GitHub发布
 
-    - name: 删除工作流运行
+    # === 13. 清理策略 ===
+    - name: 清理旧工作流
       uses: Mattraks/delete-workflow-runs@main
       with:
-        retain_days: 0
-        keep_minimum_runs: 2
+        retain_days: 0      # 立即清理完成的工作流
+        keep_minimum_runs: 2 # 保留最新的2个记录
+      # 备注：防止工作流记录堆积
 
-    - name: 删除旧版本
-      uses: dev-drprasad/delete-older-releases@master
+    - name: 清理旧发布
+      uses: dev-drprasad/delete-older-releases@v0.2.1
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
-        keep_latest: 10
-        delete_tags: true
+        keep_latest: 10     # 保留最新的10个发布
+        delete_tags: true   # 同时删除关联的标签
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # 备注：自动管理发布版本，避免存储空间浪费
