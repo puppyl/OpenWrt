@@ -10,6 +10,16 @@
 
 [![LEDE-HinLink_H29K-Builder](https://github.com/aaaol/OpenWrt/actions/workflows/LEDE-HinLink_H29K-Builder.yml/badge.svg)](https://github.com/aaaol/OpenWrt/actions/workflows/LEDE-HinLink_H29K-Builder.yml)
 
+🌐 管理地址: 192.168.1.1
+
+👤 用户名: root
+
+🔒 密码: password
+
+📒 WIFI：H29K
+
+📒 密码：1234567890
+
 ### ImmortalWrt-X86 固件编译
 
 [![ImmortalWrt-X86-Builder](https://github.com/aaaol/OpenWrt/actions/workflows/ImmortalWrt-X86_64-Builder.yml/badge.svg)](https://github.com/aaaol/OpenWrt/actions/workflows/ImmortalWrt-X86_64-Builder.yml)
