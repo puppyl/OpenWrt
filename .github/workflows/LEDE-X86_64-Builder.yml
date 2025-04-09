@@ -7,10 +7,10 @@ on:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  CONFIG_FILE: Config/LEDE/X86/.config 
-  Feeds_SH: Scripts/LEDE/X86/Feeds.sh
-  Settings_SH: Scripts/LEDE/X86/Settings.sh
-  Packages_SH: Scripts/LEDE/X86/Packages.sh
+  CONFIG_FILE: Config/LEDE/X86_64.config
+  Feeds_SH: Scripts/LEDE/X86_64/Feeds.sh
+  Settings_SH: Scripts/LEDE/X86_64/Settings.sh
+  Packages_SH: Scripts/LEDE/X86_64/Packages.sh
   UPLOAD_BIN_DIR: false
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
@@ -68,7 +68,7 @@ jobs:
 
     - name: 加载自定义订阅源
       run: |
-        [ -e Files ] && [ -n "$(ls -A Files/LEDE/X86/ 2>/dev/null)" ] && cp -rf Files/LEDE/X86/* LEDE/ || echo "Files目录为空或不存在，跳过复制"
+        [ -e Files ] && [ -n "$(ls -A Files/LEDE/X86_64/ 2>/dev/null)" ] && cp -rf Files/LEDE/X86_64/* LEDE/ || echo "Files目录为空或不存在，跳过复制"
         chmod +x $Feeds_SH
         cd LEDE
         bash $GITHUB_WORKSPACE/$Feeds_SH || echo "文件 $Feeds_SH 不存在"
@@ -139,14 +139,10 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=LEDE-X86-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
+        echo "release_tag=LEDE-X86_64 - $(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
         touch release.txt
                 echo "
-        💻 架构: ${{ matrix.ARCHITECTURE }}
-
         📂 源码: ${{ env.REPO_URL }}
-
-        🌳 分支: ${{ matrix.REPO_BRANCH }}
 
         ⏱️ 编译时间: $(date +"%Y年%m月%d日%H时%M分")
 

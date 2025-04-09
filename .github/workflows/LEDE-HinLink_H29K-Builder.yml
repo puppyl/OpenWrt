@@ -19,7 +19,7 @@ on:
 env:
   REPO_URL: https://github.com/coolsnowwolf/lede
   REPO_BRANCH: master
-  CONFIG_FILE: Config/LEDE/HinLink_H29K/.config
+  CONFIG_FILE: Config/LEDE/HinLink_H29K.config
   Feeds_SH: Scripts/LEDE/HinLink_H29K/Feeds.sh
   Settings_SH: Scripts/LEDE/HinLink_H29K/Settings.sh
   Packages_SH: Scripts/LEDE/HinLink_H29K/Packages.sh
@@ -152,14 +152,10 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=LEDE-HinLink_H29K-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
+        echo "release_tag=LEDE-HinLink_H29K - $(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
         touch release.txt
         echo "
-        💻 架构: ${{ matrix.ARCHITECTURE }}
-
         📂 源码: ${{ env.REPO_URL }}
-
-        🌳 分支: ${{ matrix.REPO_BRANCH }}
 
         ⏱️ 编译时间: $(date +"%Y年%m月%d日%H时%M分")
 
