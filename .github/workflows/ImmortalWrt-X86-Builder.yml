@@ -250,26 +250,46 @@ jobs:
         # 生成版本标签
         echo "release_tag=ImmortalWrt-X86_64-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
         
+        # 生成软件包表格
+        echo ">>> 正在生成软件包信息..."
+        cd ImmortalWrt
+        PKG_INFO=$(make package/info 2>/dev/null | awk '
+          BEGIN { print "| 软件包名 | 中文解释 | 版本号 | 更新日期 |\n|----------|----------|--------|----------|" }
+          /^Package:/ { pkg=$2 }
+          /^Version:/ { ver=$2 }
+          /^LastModified:/ { date=$2 }
+          /^Description:/ { desc=substr($0, index($0,$2)); 
+              # 提取中文字符(如果有)
+              match(desc,/[\u4e00-\u9fa5]+/);
+              zh_desc=substr(desc,RSTART,RLENGTH);
+              zh_desc=zh_desc ? zh_desc : "系统组件";
+              printf "| %s | %s | %s | %s |\n", pkg, zh_desc, ver, date }
+        ' | sort -u)
+
         # 生成发布说明
         cat <<EOF > release.txt
-        🚀 ImmortalWrt 自动构建结果
+        🚀 ImmortalWrt 自动构建报告
         
         📅 编译时间: $(date +"%Y-%m-%d %H:%M:%S %Z")
-        💻 设备型号: ${{ env.DEVICE_NAME }}
+        💻 设备架构: x86_64
+        🌱 源码分支: $REPO_BRANCH
+
+        📊 包含软件包列表:
+        $PKG_INFO
+
+        🔐 默认登录信息:
+        - 管理地址: 192.168.1.1
+        - 用户名: root
+        - 密码: password
         
-        🔗 源码仓库: $REPO_URL
-        🌱 代码分支: $REPO_BRANCH
-        
-        🔐 默认凭据:
-          IP: 192.168.1.1
-          用户名: root
-          密码: password
-        
-        📌 提示: 首次启动建议执行固件重置
+        📌 使用提示:
+        1. 首次启动建议恢复出厂设置
+        2. 可通过 opkg list-upgradable 查看可更新软件
+        3. 完整软件列表见 /usr/lib/opkg/status
         EOF
         
         echo "status=success" >> $GITHUB_OUTPUT
-      # 备注：生成格式化的发布说明
+
 
     - name: 发布固件
       uses: softprops/action-gh-release@v2
