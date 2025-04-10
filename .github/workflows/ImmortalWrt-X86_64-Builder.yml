@@ -1,4 +1,4 @@
-name: ImmortalWrt-X86-Builder
+name: ImmortalWrt-X86_64-Builder
 
 on:
   # 两种触发方式：

@@ -22,7 +22,7 @@
 
 ### ImmortalWrt-X86 固件编译
 
-[![ImmortalWrt-X86-Builder](https://github.com/aaaol/OpenWrt/actions/workflows/ImmortalWrt-X86_64-Builder.yml/badge.svg)](https://github.com/aaaol/OpenWrt/actions/workflows/ImmortalWrt-X86_64-Builder.yml)
+[![ImmortalWrt-X86-Builder](https://github.com/aaaol/OpenWrt/actions/workflows/ImmortalWrt-X86-Builder.yml/badge.svg)](https://github.com/aaaol/OpenWrt/actions/workflows/ImmortalWrt-X86_64-Builder.yml)
 
 ## 致谢
 - [Microsoft Azure](https://azure.microsoft.com)
