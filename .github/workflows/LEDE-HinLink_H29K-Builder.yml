@@ -148,29 +148,31 @@ jobs:
         name: OpenWrt_firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE }}
 
-    - name: 生成发布标签
+    - name: 准备发布说明
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=LEDE-HinLink_H29K - $(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
-        touch release.txt
-        echo "
-        📂 源码: ${{ env.REPO_URL }}
-
-        ⏱️ 编译时间: $(date +"%Y年%m月%d日%H时%M分")
-
-        🌐 管理地址: 192.168.1.1
-
-        👤 用户名: root
-
-        🔒 密码: password
-
-        📒 WIFI：H29K
-
-        📒 密码：1234567890
-        echo "status=success" >> ${GITHUB_OUTPUT}
-        [ ${UPLOAD_GOFILE} = true && ${{ steps.gofile.outputs.url }} ] && echo "🔗 [GoFile](${{ steps.gofile.outputs.url }})" >> release.txt
+        # 生成版本标签
+        echo "release_tag=ImmortalWrt-X86_64-$(date +"%Y.%m.%d-%H%M%S")" >> $GITHUB_OUTPUT
+        
+        # 生成发布说明
+        cat <<EOF > release.txt
+        🚀 ImmortalWrt 自动构建结果
+        
+        📅 编译时间: $(date +"%Y-%m-%d %H:%M:%S %Z")
+        💻 设备型号: ${{ env.DEVICE_NAME }}
+        
+        🔗 源码仓库: $REPO_URL
+        🌱 代码分支: $REPO_BRANCH
+        
+        🔐 默认凭据:
+          IP: 192.168.100.3
+          用户名: root
+          密码: password
+        EOF
+        
         echo "status=success" >> $GITHUB_OUTPUT
+      # 备注：生成格式化的发布说明
 
     - name: 上传固件以发布
       uses: softprops/action-gh-release@master
