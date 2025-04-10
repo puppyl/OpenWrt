@@ -157,7 +157,7 @@ jobs:
         
         # 生成发布说明
         cat <<EOF > release.txt
-        🚀 ImmortalWrt 自动构建结果
+        🚀 Lede 自动构建结果
         
         📅 编译时间: $(date +"%Y-%m-%d %H:%M:%S %Z")
         💻 设备型号: ${{ env.DEVICE_NAME }}

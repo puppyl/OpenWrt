@@ -20,6 +20,12 @@
 
 📒 密码：1234567890
 
+![基本信息](https://github.com/user-attachments/assets/3a154eb4-5f06-443a-b839-4edfeaa91eb9)
+![系统功能](https://github.com/user-attachments/assets/8c842cdb-8212-42c8-913a-cafb8977565a)
+![蜂窝网络](https://github.com/user-attachments/assets/86f20e91-0b94-488a-8351-7918d909faa8)
+![所有插件](https://github.com/user-attachments/assets/a1a0a160-cb33-4550-846c-56c678ffd5ab)
+![硬件加速](https://github.com/user-attachments/assets/5be3fbed-0fe2-4239-a0f0-10069e5d27fb)
+
 ### ImmortalWrt-X86 固件编译
 
 [![ImmortalWrt-X86_64-Builder](https://github.com/aaaol/OpenWrt/actions/workflows/ImmortalWrt-X86_64-Builder.yml/badge.svg)](https://github.com/aaaol/OpenWrt/actions/workflows/ImmortalWrt-X86_64-Builder.yml)
