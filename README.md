@@ -26,8 +26,8 @@
   <img src="https://github.com/user-attachments/assets/86f20e91-0b94-488a-8351-7918d909faa8" width="32%" style="margin: 0.5%">
 </div>
 <div style="display: flex; justify-content: space-between; flex-wrap: wrap;">
-  <img src="https://github.com/user-attachments/assets/a1a0a160-cb33-4550-846c-56c678ffd5ab" width="32%" style="margin: 0.5%">
-  <img src="https://github.com/user-attachments/assets/5be3fbed-0fe2-4239-a0f0-10069e5d27fb" width="32%" style="margin: 0.5%">
+  <img src="https://github.com/user-attachments/assets/a1a0a160-cb33-4550-846c-56c678ffd5ab" width="49%" style="margin: 0.5%">
+  <img src="https://github.com/user-attachments/assets/5be3fbed-0fe2-4239-a0f0-10069e5d27fb" width="49%" style="margin: 0.5%">
 </div>
 
 
